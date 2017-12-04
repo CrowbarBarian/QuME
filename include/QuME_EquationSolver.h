@@ -1,5 +1,5 @@
-// I can't remember where I got this code from...it's a Gaussian elmination algorithm
-// I modified it a little for my purposes, but someone ele wrote it
+// Code obtained from http://www.geeksforgeeks.org/gaussian-elimination/
+// Modified for use in QuME
 // - CrowbarBarian
 
 #ifndef QUME_EQUATIONSOLVER_H_INCLUDED
@@ -41,7 +41,7 @@ public:
              * it denotes that matrix is singular, and
              * will lead to a division-by-zero later. */
             if (Matrix[k][i_max] == 0.0)
-                return false; // Matrix is singular
+http://www.geeksforgeeks.org/gaussian-elimination/                return false; // Matrix is singular
 
             /* Swap the greatest value row with current row */
             if (i_max != k)
@@ -53,7 +53,7 @@ public:
                     Matrix[i_max][column] = temp;
                 }
 
-            }
+          http://www.geeksforgeeks.org/gaussian-elimination/  }
 
 
             for (wxInt32 i = k + 1; i < 3; i++)

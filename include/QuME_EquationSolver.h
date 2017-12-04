@@ -1,3 +1,7 @@
+// I can't remember where I got this code from...it's a Gaussian elmination algorithm
+// I modified it a little for my purposes, but someone ele wrote it
+// - CrowbarBarian
+
 #ifndef QUME_EQUATIONSOLVER_H_INCLUDED
 #define QUME_EQUATIONSOLVER_H_INCLUDED
 

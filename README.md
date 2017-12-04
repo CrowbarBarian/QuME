@@ -5,3 +5,5 @@ This is the Quake 2 Map Extractor. It can be used to pull out raw geometry into 
 and Code::Blocks on Linux. It is extremely alpha at this stage. It works, but it still needs more features.
 
 Seriously, pre-beta.
+
+Also, seriously bad code, needs real refactoring, much less OOD.

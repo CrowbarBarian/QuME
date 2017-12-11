@@ -45,7 +45,7 @@ bool QuME_Plane::Intersect(const QuME_Plane& other1, const QuME_Plane& other2, Q
         if ((Matrix[i][i] < QUME_EPSILON) && (Matrix[i][i] > -QUME_EPSILON)) return false; //not a valid intersection
         if ((std::isnan(Matrix[i][i])) || (std::isinf(Matrix[i][i])))
         {
-            std::cout << "NaN or Inf found in input matrix!\n";
+            std::cout << L"NaN or Inf found in input matrix!\n";
             return false;
         }
     }
@@ -77,9 +77,9 @@ bool QuME_Plane::Intersect(const QuME_Plane& other1, const QuME_Plane& other2, Q
     {
         for(i = 0; i < 3; i++)
         {
-            std::cout << Matrix[i][0] << ",\t" << Matrix[i][1] << ",\t" << Matrix[i][2] << ",\t" << Matrix[i][3] << "\n";
+            std::cout << Matrix[i][0] << L",\t" << Matrix[i][1] << L",\t" << Matrix[i][2] << L",\t" << Matrix[i][3] << L"\n";
         }
-        std::cout << "\n";
+        std::cout << L"\n";
         return false; //bad elimination...something screwed up
     }
     return true;

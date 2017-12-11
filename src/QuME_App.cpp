@@ -1,10 +1,10 @@
 /***************************************************************
  * Name:      QuME_App.cpp
  * Purpose:   Code for Application Class
- * Author:    Joseph Thomas (Crowbarbarian) (crowbarbarian@outlook.com)
+ * Author:    J Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
  * Created:   2017-06-13
- * Copyright: Joseph Thomas (Crowbarbarian) ()
- * License:
+ * Copyright: J Thomas (Crowbarbarian) ()
+ * License:   GPL v3
  **************************************************************/
 
 #include "QuME_App.h"

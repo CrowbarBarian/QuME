@@ -65,7 +65,7 @@ enum STRING_PARSE_STATE
 };
 
 
-wxUint32 readStringFromBuffer(wxUint8* buffer, wxUint32 offset, wxUint32 length, wxUint8** out)
+wxInt32 readStringFromBuffer(wxUint8* buffer, wxUint32 offset, wxUint32 length, wxUint8** out)
 {
     wxUint32 i = offset;
 
@@ -148,6 +148,7 @@ bool QuME_BSP_Entities::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
     }
 
     wxUint8 *ent_text_buf = new wxUint8[length]; //temporary buffer to parse from
+    //remember, not Unicode in BSP file!
 
     binData->Read8(ent_text_buf, length);
 
@@ -166,6 +167,9 @@ bool QuME_BSP_Entities::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
 
     wxUint8* keyNameStart = nullptr;
     wxUint8* keyValStart = nullptr;
+
+    std::wstring keyName;
+    std::wstring keyVal;
 
     QuME_BSP_EntList* e = nullptr;
 
@@ -214,6 +218,7 @@ bool QuME_BSP_Entities::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
                     }
                     else
                     {
+
                         state = KEY_VAL;
                     }
                 }
@@ -233,8 +238,12 @@ bool QuME_BSP_Entities::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
                 {
                     state = KEY_NAME;
                 }
+                //arg, there has to be a better way!
+                copys2ws(keyNameStart, &keyName);
 
-                e->entity.addKey(keyNameStart, keyValStart);
+                copys2ws(keyValStart, &keyVal);
+
+                e->entity.addKey(keyName, keyVal);
                 break;
 
             case END_ENT:
@@ -267,10 +276,10 @@ bool QuME_BSP_Entities::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
 
 void QuME_BSP_Entities::DebugDump(wxTextOutputStream& out)
 {
-    out << "Entities: " << this->Count << "\n";
+    out << L"Entities: " << this->Count << L"\n";
     for(QuME_BSP_EntList* t = this->EntList; t != nullptr; t = t->next)
     {
         t->entity.DebugDump(out);
     }
-    out << "\n------------------------------------------------\n";
+    out << L"\n------------------------------------------------\n";
 }

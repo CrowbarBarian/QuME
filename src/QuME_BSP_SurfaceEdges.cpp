@@ -56,10 +56,10 @@ bool QuME_BSP_SurfaceEdges::LoadLump(wxFileInputStream* infile, wxUint32 offset,
 
 void QuME_BSP_SurfaceEdges::DebugDump(wxTextOutputStream& out)
 {
-    out << "Surface edge indices:\n";
+    out << L"Surface edge indices:\n";
     for(wxUint32 i = 0; i < this->Count; i++)
     {
-        out << "Surface Edge #" << i << ": " << this->SurfaceEdge[i] << "\n";
+        out << L"Surface Edge #" << i << ": " << this->SurfaceEdge[i] << L"\n";
     }
-    out << "\n-------------------------------------------\n";
+    out << L"\n-------------------------------------------\n";
 }

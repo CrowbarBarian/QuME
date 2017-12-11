@@ -28,7 +28,7 @@ QuME_BSP_Entity& QuME_BSP_Entity::operator=(const QuME_BSP_Entity& o)
     return *this;
 }
 
-bool QuME_BSP_Entity::addKey(const char* name, const char* value)
+/*bool QuME_BSP_Entity::addKey(const wchar_t* name, const wchar_t* value)
 {
     this->keyCount++;
     ent_key* k=nullptr;
@@ -47,12 +47,12 @@ bool QuME_BSP_Entity::addKey(const char* name, const char* value)
         k = k->next;
         k->next = nullptr;
     }
-    k->keyName = wxString::FromUTF8(name);
-    k->keyValue = wxString::FromUTF8(value);
+    k->keyName = std::wstring(name);
+    k->keyValue = std::wstring(value);
     return true;
-}
+}*/
 
-bool QuME_BSP_Entity::addKey(const wxString& name, const wxString& value)
+bool QuME_BSP_Entity::addKey(const std::wstring name, const std::wstring value)
 {
     this->keyCount++;
     ent_key* k=nullptr;
@@ -62,7 +62,6 @@ bool QuME_BSP_Entity::addKey(const wxString& name, const wxString& value)
         this->keys = new ent_key;
         this->keys->next = nullptr;
         k = this->keys;
-        this->keyTail = k;
     }
     else
     {
@@ -71,6 +70,7 @@ bool QuME_BSP_Entity::addKey(const wxString& name, const wxString& value)
         k = k->next;
         k->next = nullptr;
     }
+	this->keyTail = k; //another bug squashed...forgot to add this line
     k->keyName = name;
     k->keyValue = value;
     return true;
@@ -93,11 +93,11 @@ wxUint32 QuME_BSP_Entity::GetKeyCount()
 
 void QuME_BSP_Entity::DebugDump(wxTextOutputStream& out)
 {
-    out << "Index: " << this->index << "\n";
-    out << "Keys: " << this->keyCount << "\n";
+    out << L"Index: " << this->index << L"\n";
+    out << L"Keys: " << this->keyCount << L"\n";
     for(ent_key* k = this->keys; k != nullptr; k = k->next)
     {
-        out << k->keyName << ": " << k->keyValue << "\n";
+        out << k->keyName << L": " << k->keyValue << L"\n";
     }
 
 }

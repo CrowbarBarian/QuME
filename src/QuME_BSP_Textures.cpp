@@ -12,7 +12,7 @@ QuME_BSP_Textures::~QuME_BSP_Textures()
     if(Texture !=nullptr) delete[] Texture;
 }
 
-bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length, const wxString& baseDir)
+bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length, const std::wstring& baseDir)
 {
     this->Count = length / TEXTURE_SIZE_ON_DISK;
 
@@ -58,29 +58,34 @@ bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
         binData->Read8(c, TEXTURE_NAME_SIZE);
         c[TEXTURE_NAME_SIZE - 1] = 0; //just in case...
 
-        t->MaterialName = wxString::FromUTF8(reinterpret_cast<char*>(c)); //convert ASCII name to wxString object
+        copys2ws(c, &t->MaterialName); //convert ASCII name to wstring object
 
         //fix the problem of random upper/lower case in the file names
         //this is a result of the DOS/Windows file-system case-insensitivity
-        t->MaterialName.LowerCase();
+        std::transform(t->MaterialName.begin(), t->MaterialName.end(), t->MaterialName.begin(), ::tolower);
+        //t->MaterialName.towlower();
         t->NextTexInfo = binData->Read32();
 
         //open .wal file to get necessary info on width and height
         wxInputStream* walFile = new wxFileInputStream(baseDir +
-                                                       "textures/" +
+                                                       L"textures/" +
                                                        t->MaterialName +
-                                                       ".wal");
+                                                       L".wal");
         if(!walFile->IsOk())
         {
-            this->FaultTexture = baseDir + "textures/" + t->MaterialName + ".wal";
+            this->FaultTexture = baseDir + L"textures/" + t->MaterialName + L".wal";
             return false;
         }
         wxDataInputStream* walData = new wxDataInputStream(*walFile);
 
         walData->Read8(c, TEXTURE_NAME_SIZE);
         c[TEXTURE_NAME_SIZE - 1] = 0; //just in case...
-        wxString walName = c;
-        walName.LowerCase();
+        std::wstring walName;
+        copys2ws(c, &walName);
+        std::transform(walName.begin(), walName.end(), walName.begin(), ::tolower);
+
+
+        //walName.LowerCase();
 
         t->xRes = walData->Read32();
         t->yRes = walData->Read32();
@@ -106,11 +111,11 @@ bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
 
 void QuME_BSP_Textures::DebugDump(wxTextOutputStream& out)
 {
-    out << "Textures: " << this->Count << "\n";
+    out << L"Textures: " << this->Count << L"\n";
     for(wxUint32 i = 0; i < this->Count; i++)
     {
-        out << "Texture " << i << "\n";
+        out << L"Texture " << i << "\n";
         this->Texture[i].DebugDump(out);
     }
-    out << "\n------------------------------\n";
+    out << L"\n------------------------------\n";
 }

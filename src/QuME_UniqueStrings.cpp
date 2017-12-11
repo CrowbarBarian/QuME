@@ -18,12 +18,12 @@ QuME_UniqueStrings::~QuME_UniqueStrings()
     this->UniqueStrings = nullptr;
 }
 
-bool QuME_UniqueStrings::IsUnique(wxString& t)
+bool QuME_UniqueStrings::IsUnique(std::wstring& t)
 {
     if(this->UniqueStrings == nullptr)
     {
         this->UniqueStrings = new UniqueStringList();
-        this->UniqueStrings->String = t;
+        this->UniqueStrings->stringData = t;
         this->UniqueStrings->next = nullptr;
         return true;
     }
@@ -32,7 +32,7 @@ bool QuME_UniqueStrings::IsUnique(wxString& t)
     for(i = this->UniqueStrings; i != nullptr; i = i->next)
     {
         k = i;
-        if(i->String.IsSameAs(t))
+        if(i->stringData == t)
         {
             return false;
         }
@@ -40,6 +40,6 @@ bool QuME_UniqueStrings::IsUnique(wxString& t)
     k->next = new UniqueStringList;
     k = k->next;
     k->next = nullptr;
-    k->String = t;
+    k->stringData = t;
     return true;
 }

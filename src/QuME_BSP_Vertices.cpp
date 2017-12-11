@@ -62,11 +62,11 @@ bool QuME_BSP_Vertices::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
 
 void QuME_BSP_Vertices::DebugDump(wxTextOutputStream& out)
 {
-    out << "Vertices: " << this->ArrayCount << "\n";
+    out << L"Vertices: " << this->ArrayCount << L"\n";
     for(wxUint32 i = 0; i < this->ArrayCount; i++)
     {
-        out << "Vertex " << i << ": ";
+        out << L"Vertex " << i << ": ";
         this->VertexArray[i].DebugDump(out);
     }
-    out << "\n------------------------------------\n";
+    out << L"\n------------------------------------\n";
 }

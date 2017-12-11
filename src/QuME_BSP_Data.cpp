@@ -1,10 +1,10 @@
 /***************************************************************
  * Name:      QuME_Main.cpp
  * Purpose:   Code for BSP Data Type Handler
- * Author:    Joseph Thomas (Crowbarbarian) (crowbarbarian@outlook.com)
+ * Author:    J Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
  * Created:   2017-06-13
- * Copyright: Joseph Thomas (Crowbarbarian) ()
- * License:   GPL v3.0
+ * Copyright: J Thomas (Crowbarbarian) ()
+ * License:   GPL v3
  **************************************************************/
 #include "QuME_BSP_Data.h"
 #include "QuME_Main.h"
@@ -173,7 +173,7 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
     wxThreadEvent event(wxEVT_THREAD, CONSOLELOG_EVENT);
     wxThreadEvent progress(wxEVT_THREAD, BSPPROCESSING_EVENT);
 
-    event.SetString("Processing Brushes...\nNumber of brushes in map:" + std::to_wstring(this->Brushes.Count) +"\n");
+    event.SetString(L"Processing Brushes...\nNumber of brushes in map:" + std::to_wstring(this->Brushes.Count) + L"\n");
     wxQueueEvent(Frame, event.Clone());
 
     //iterate through all the brushes in the BSP file
@@ -294,7 +294,7 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
     this->BrushVertices.VertexArray = this->BrushVertices.VertexList.ToArray(this->BrushVertices.ArrayCount);
     for(wxUint32 VertIdx = 0; VertIdx < this->BrushVertices.ArrayCount; VertIdx++)
     {
-        std::cout << "v " << this->BrushVertices.VertexArray[VertIdx] << "\n";
+        //std::cout << "v " << this->BrushVertices.VertexArray[VertIdx] << "\n";
     }
 
     for(wxInt32 i = 0; i < static_cast<wxInt32>(this->BrushSides.BrushSideArray.Count); i++)
@@ -306,7 +306,7 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
 
     for(wxUint32 BrushIndex = 0; BrushIndex < this->Brushes.Count; BrushIndex++)
     {
-        std::cout << "o Brush_" << BrushIndex << "\n";
+        //std::cout << L"o Brush_" << BrushIndex << L"\n";
         QuME_BSP_Brush* CurrentBrush = &this->Brushes.Brush[BrushIndex];
         wxUint32 BrushSideCount = CurrentBrush->SideCount;
         wxUint32 FirstBrushSide = CurrentBrush->FirstBrushSide;
@@ -375,12 +375,12 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
                 result.Append(*a);
                 result.Append(EndIndex);
                 result.Append(*b);
-                std::cout << "f ";
+                //std::cout << L"f ";
                 for(ListItem<wxUint32>* r = result.Head; r != nullptr; r = r->next)
                 {
-                    std::cout << r->Item + 1 << " ";
+                    //std::cout << r->Item + 1 << L" ";
                 }
-                std::cout << "\n";
+                //std::cout << L"\n";
             }
         }
     }
@@ -395,8 +395,8 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
 //this dumps all the available info into a HUGE text file
 void QuME_BSP_Data::DebugDump(wxTextOutputStream& out)
 {
-    out << "BSP version: " << this->BSPVersion << "\n";
-    out << "\n-----------------------------------\n";
+    out << L"BSP version: " << this->BSPVersion << L"\n";
+    out << L"\n-----------------------------------\n";
     this->LumpTable.DebugDump(out);
     this->Entities.DebugDump(out);
     this->Vertices.DebugDump(out);

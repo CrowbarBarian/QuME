@@ -55,10 +55,10 @@ bool QuME_BSP_Edges::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint
 
 void QuME_BSP_Edges::DebugDump(wxTextOutputStream& out)
 {
-    out << "Edges:\nCount: " << this->Count << "\n";
+    out << L"Edges:\nCount: " << this->Count << L"\n";
     for(wxUint32 i = 0; i < this->Count; i++)
     {
-        out << "a: " << this->EdgeArray[i].a << ", b: " << this->EdgeArray[i].b << "\n";
+        out << L"a: " << this->EdgeArray[i].a << L", b: " << this->EdgeArray[i].b << L"\n";
     }
-    out << "\n----------------------------------\n";
+    out << L"\n----------------------------------\n";
 }

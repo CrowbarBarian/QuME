@@ -136,16 +136,16 @@ wxInt32 QuME_BSP_Face::Triangulate()
 
 void QuME_BSP_Face::DebugDump(wxTextOutputStream& out)
 {
-    out << "Plane #" << this->Plane << "\n";
-    out << "Plane Side: " << this->PlaneSide << "\n";
-    out << "First Edge: " << this->FirstEdge << "\n";
-    out << "Number of Edges: " << this->EdgeCount << "\n";
-    out << "Texture Info: " << this->TextureInfo << "\n";
-    out << "Light-map Style #0: " << this->LightmapStyles[0];
-    out << ", Light-map Style #1: " << this->LightmapStyles[1];
-    out << ", Light-map Style #2: " << this->LightmapStyles[2];
-    out << ", Light-map Style #3: " << this->LightmapStyles[3]<< "\n";
-    out << "Light-map Offset: " << this->LightmapOffset << "\n";
+    out << L"Plane #" << this->Plane << L"\n";
+    out << L"Plane Side: " << this->PlaneSide << L"\n";
+    out << L"First Edge: " << this->FirstEdge << L"\n";
+    out << L"Number of Edges: " << this->EdgeCount << L"\n";
+    out << L"Texture Info: " << this->TextureInfo << L"\n";
+    out << L"Light-map Style #0: " << this->LightmapStyles[0];
+    out << L", Light-map Style #1: " << this->LightmapStyles[1];
+    out << L", Light-map Style #2: " << this->LightmapStyles[2];
+    out << L", Light-map Style #3: " << this->LightmapStyles[3]<< L"\n";
+    out << L"Light-map Offset: " << this->LightmapOffset << L"\n";
 }
 //---------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------
@@ -213,11 +213,11 @@ bool QuME_BSP_Faces::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint
 }
 void QuME_BSP_Faces::DebugDump(wxTextOutputStream& out)
 {
-    out << "Faces:\n";
+    out << L"Faces:\n";
     for(wxUint32 i = 0; i < this->Count; i++)
     {
-        out << "Face #" << i << "\n";
+        out << L"Face #" << i << L"\n";
         this->Face[i].DebugDump(out);
     }
-    out << "\n---------------------------------------\n";
+    out << L"\n---------------------------------------\n";
 }

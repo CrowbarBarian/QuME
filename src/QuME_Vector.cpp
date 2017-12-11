@@ -215,13 +215,13 @@ QuME_Vector& QuME_Vector::normalize()
 
 void QuME_Vector::DebugDump(wxTextOutputStream& out)
 {
-    out << "X: " << this->x << ", Y: " << this->y << ", Z: " << this->z << "\n";
+    out << L"X: " << this->x << L", Y: " << this->y << L", Z: " << this->z << L"\n";
 }
 
 
 std::ostream& operator<<(std::ostream& os, const QuME_Vector& o)
 {
     // write obj to stream
-    os << o.x << " " << o.y << " " << o.z;
+    os << o.x << L" " << o.y << L" " << o.z;
     return os;
 }

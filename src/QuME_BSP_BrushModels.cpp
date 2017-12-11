@@ -73,22 +73,22 @@ bool QuME_BSP_BrushModels::LoadLump(wxFileInputStream* infile, wxUint32 offset, 
 
 void QuME_BSP_BrushModels::DebugDump(wxTextOutputStream& out)
 {
-    out << "BrushModels: " << this->Count << "\n";
+    out << L"BrushModels: " << this->Count << L"\n";
     for(wxUint32 i = 0; i < this->Count; i++)
     {
-        out << "BrushModel #" << i << "\n";
+        out << L"BrushModel #" << i << L"\n";
         this->BrushModel[i].DebugDump(out);
     }
-    out << "\n-----------------------------------\n";
+    out << L"\n-----------------------------------\n";
 }
 
 void QuME_BSP_BrushModel::DebugDump(wxTextOutputStream& out)
 {
-    out << "Mins: X:" << this->Mins[0] << " Y: " << this->Mins[1] << " Z: " << this->Mins[2] << "\n";
-    out << "Maxs: X:" << this->Maxs[0] << " Y: " << this->Maxs[1] << " Z: " << this->Maxs[2] << "\n";
-    out << "Origin: X:" << this->Origin[0] << " Y: " << this->Origin[1] << " Z: " << this->Origin[2] << "\n";
-    out << "HeadNode: " << this->HeadNode << "\n";
-    out << "First Face: " << this->FirstFace << "\n";
-    out << "Number of faces: " << this->NumFaces << "\n";
+    out << L"Mins: X:" << this->Mins[0] << L" Y: " << this->Mins[1] << L" Z: " << this->Mins[2] << L"\n";
+    out << L"Maxs: X:" << this->Maxs[0] << L" Y: " << this->Maxs[1] << L" Z: " << this->Maxs[2] << L"\n";
+    out << L"Origin: X:" << this->Origin[0] << L" Y: " << this->Origin[1] << L" Z: " << this->Origin[2] << L"\n";
+    out << L"HeadNode: " << this->HeadNode << L"\n";
+    out << L"First Face: " << this->FirstFace << L"\n";
+    out << L"Number of faces: " << this->NumFaces << L"\n";
 }
 

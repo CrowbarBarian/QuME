@@ -40,6 +40,7 @@
 			<Add option="-m64" />
 			<Add option="`wx-config --cflags`" />
 			<Add directory="./include" />
+			<Add directory="." />
 		</Compiler>
 		<Linker>
 			<Add option="-m64" />
@@ -47,6 +48,8 @@
 			<Add library="/usr/lib/x86_64-linux-gnu/libGL.so" />
 			<Add library="/usr/local/lib/libwx_gtk2u_gl-3.1.so" />
 		</Linker>
+		<Unit filename="FaceDialog.cpp" />
+		<Unit filename="FaceDialog.h" />
 		<Unit filename="include/QuME_App.h" />
 		<Unit filename="include/QuME_Arrays.h" />
 		<Unit filename="include/QuME_BSP_BrushModels.h" />
@@ -93,6 +96,8 @@
 		<Unit filename="src/QuME_Plane.cpp" />
 		<Unit filename="src/QuME_UniqueStrings.cpp" />
 		<Unit filename="src/QuME_Vector.cpp" />
+		<Unit filename="wxsmith/FaceDialog.wxs" />
+		<Unit filename="wxsmith/QuME_Frame.wxs" />
 		<Extensions>
 			<envvars />
 			<code_completion>
@@ -104,6 +109,7 @@
 				<gui name="wxWidgets" src="src/QuME_App.cpp" main="-- None --" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxFrame wxs="wxsmith/QuME_Frame.wxs" src="src/QuME_Main.cpp" hdr="src/QuME_Main.h" fwddecl="0" i18n="1" name="QuME_Frame" language="CPP" />
+					<wxDialog wxs="wxsmith/FaceDialog.wxs" src="FaceDialog.cpp" hdr="FaceDialog.h" fwddecl="0" i18n="1" name="FaceDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<debugger />

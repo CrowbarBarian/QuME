@@ -1,10 +1,10 @@
 /***************************************************************
  * Name:      QuME_Main.h
  * Purpose:   Defines Application Frame
- * Author:    Joseph Thomas (Crowbarbarian) (crowbarbarian@outlook.com)
+ * Author:    J Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
  * Created:   2017-06-13
- * Copyright: Joseph Thomas (Crowbarbarian) ()
- * License:
+ * Copyright: J Thomas (Crowbarbarian) ()
+ * License:   GPL v3
  **************************************************************/
 
 #ifndef QUME_MAIN_H
@@ -32,6 +32,7 @@ wxDECLARE_APP(QuME_App);
 #include "QuME_BSP_ObjExporter.h"
 #include "QuME_BSP_Load.h"
 #include "QuME_BSP_Data.h"
+//#include "FaceDialog.h"
 
 class QuME_Frame : public wxFrame
 {
@@ -51,9 +52,9 @@ class QuME_Frame : public wxFrame
         void OnQuit(wxCommandEvent& event);
         void OnAbout(wxCommandEvent& event);
 
-        void OnSpinCtrl1Change(wxSpinEvent& event);
-        void OnSpinCtrl2Change(wxSpinEvent& event);
-        void OnSpinCtrl3Change(wxSpinEvent& event);
+        void OnSpinFaceExamineChange(wxSpinEvent& event);
+        void OnSpinEntityExamineChange(wxSpinEvent& event);
+        void OnSpinTextureExamineChange(wxSpinEvent& event);
 
         void UpdateGLWindow(wxTimerEvent& event);
 
@@ -73,22 +74,22 @@ class QuME_Frame : public wxFrame
         //the ids of all of our GUI elements
 
         //the main console window
-        static const long ID_TEXTCTRL1;
+        static const long ID_INFOCONSOLE;
 
         //labels for stuff
-        static const long ID_STATICTEXT1;
-        static const long ID_STATICTEXT3;
-        static const long ID_STATICTEXT2;
-        static const long ID_STATICTEXT4;
-        static const long ID_STATICTEXT5;
-        static const long ID_STATICTEXT6;
-        static const long ID_STATICTEXT7;
-        static const long ID_STATICTEXT8;
+        static const long ID_STATICTEXT_FACEINSPECTOR;
+        static const long ID_STATICTEXT_ENTITYINSPECTOR;
+        static const long ID_STATICTEXT_TEXTUREINSPECTOR;
+        static const long ID_STATICTEXT_INFOCONSOLE;
+        static const long ID_STATICTEXT_PREVIEWWINDOW;
+        static const long ID_STATICTEXT_XROTATION;
+        static const long ID_STATICTEXT_YROTATION;
+        static const long ID_STATICTEXT_ZROTATION;
 
         //data examiners
         static const long ID_SPIN_FACE_EXAMINE;
-        static const long ID_SPINENTITYEXAMINE;
-        static const long ID_SPINTEXTUREEXAMINE;
+        static const long ID_SPIN_ENTITY_EXAMINE;
+        static const long ID_SPIN_TEXTURE_EXAMINE;
 
         //OpenGL window rotation
         static const long ID_SLIDER_XROTATION;
@@ -103,68 +104,68 @@ class QuME_Frame : public wxFrame
         static const long ID_MENU_BASEDIR;
         static const long ID_MENU_ABOUT;
 
-        static const long ID_STATUSBAR1;
+        static const long ID_STATUSBAR;
 
-        static const long ID_TIMER1;
-        static const long ID_GLCANVAS1; //the id of the GLCanvas object
+        static const long ID_REFRESHTIMER;
+        static const long ID_MAINGLCANVAS; //the id of the GLCanvas object
 
         //pointer to our console object
-        wxTextCtrl* TextCtrl1;
+        wxTextCtrl* infoConsole;
 
-        wxGLCanvas* GLCanvas1; //pointer to our OpenGL drawing surface
-        wxGLContext* Context1; //context pointer
+        wxGLCanvas* mainGLCanvas; //pointer to our OpenGL drawing surface
+        wxGLContext* glContext; //context pointer
 
         //our label pointers
-        wxStaticText* StaticText1;
-        wxStaticText* StaticText2;
-        wxStaticText* StaticText3;
-        wxStaticText* StaticText4;
-        wxStaticText* StaticText5;
-        wxStaticText* StaticText6;
-        wxStaticText* StaticText7;
-        wxStaticText* StaticText8;
+        wxStaticText* staticTextFaceInspector;
+        wxStaticText* staticTextEntityInspector;
+        wxStaticText* staticTextTextureInspector;
+        wxStaticText* staticTextInfoConsole;
+        wxStaticText* staticTextPreviewWindow;
+        wxStaticText* staticTextXRotation;
+        wxStaticText* staticTextYRotation;
+        wxStaticText* StaticTextZRotation;
 
         //our data examiner pointers
-        wxSpinCtrl* SpinCtrl1;
-        wxSpinCtrl* SpinCtrl3;
-        wxSpinCtrl* SpinCtrl2;
+        wxSpinCtrl* spinFaceExamine;
+        wxSpinCtrl* spinTextureExamine;
+        wxSpinCtrl* spinEntityToExamine;
 
         //pointers to our slider controls
-        wxSlider* Slider1;
-        wxSlider* Slider2;
-        wxSlider* Slider3;
+        wxSlider* SliderXRotation;
+        wxSlider* SliderYRotation;
+        wxSlider* SliderZRotation;
 
         //menu item pointers
-        wxMenu* MenuOptions;
-        wxMenuItem* MenuOpen;
-        wxMenuItem* MenuExport;
-        wxMenuItem* MenuBasedir;
-        wxMenuItem* MenuBrushes;
+        wxMenu* menuOptions;
+        wxMenuItem* menuOpen;
+        wxMenuItem* menuExport;
+        wxMenuItem* menuBaseDirectory;
+        wxMenuItem* menuBrushes;
 
         //status bar pointer
-        wxStatusBar* StatusBar1;
+        wxStatusBar* statusBar;
 
         //timer
-        wxTimer Timer1;
+        wxTimer refreshTimer;
 
         //rotation angles for drawing on Canvas1
         wxFloat64 xRot;
         wxFloat64 yRot;
         wxFloat64 zRot;
 
-        QuME_BSP_Data* BSP; //our main database
+        QuME_BSP_Data* bsp; //our main database
         wxCriticalSection CritSecBSP; //multi-thread protection for the BSP database
 
         wxProgressDialog* BSPProcessingProgressDialog; //our file loading progress dialog
-        bool ImportCanceled;
+        bool importCanceled;
         wxCriticalSection CritSecImportCanceled;
 
         wxProgressDialog *ExportProgressDialog; //our file export progress dialog
-        bool ExportCanceled;
+        bool exportCanceled;
         wxCriticalSection CritSecExportCanceled;
 
-        wxFileConfig* Configuration; //our persistent configuration settings, stored in QuME.cfg in the app directory
-        wxString GameDir; //the one setting we need saved
+        wxFileConfig* configuration; //our persistent configuration settings, stored in QuME.cfg in the app directory
+        std::wstring gameDir; //the one setting we need saved
 
         DECLARE_EVENT_TABLE()
 };

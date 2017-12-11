@@ -6,7 +6,7 @@
 struct UniqueStringList
 {
     UniqueStringList* next;
-    wxString String;
+    std::wstring stringData;
 };
 
 
@@ -15,7 +15,7 @@ class QuME_UniqueStrings
 public:
     QuME_UniqueStrings();
     ~QuME_UniqueStrings();
-    bool IsUnique(wxString& s);
+    bool IsUnique(std::wstring& s);
 
     UniqueStringList* UniqueStrings;
 };

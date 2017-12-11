@@ -1,10 +1,10 @@
 /***************************************************************
  * Name:      QuME_BSP_Data.h
  * Purpose:   The main hub for BSP activities.
- * Author:    Joseph Thomas (Crowbarbarian) (crowbarbarian@outlook.com)
+ * Author:    J Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
  * Created:   2017-06-13
- * Copyright: Joseph Thomas (Crowbarbarian) ()
- * License:   GPL v3.0
+ * Copyright: J Thomas (Crowbarbarian) ()
+ * License:   GPL v3
  **************************************************************/
 #ifndef QUME_BSPData_H_INCLUDED
 #define QUME_BSPData_H_INCLUDED
@@ -93,7 +93,7 @@ public:
         return this->Textures.LoadLump(infile,
                                    this->LumpTable.Lump[LUMP_TEXTURE_INFORMATION].Offset,
                                    this->LumpTable.Lump[LUMP_TEXTURE_INFORMATION].Length,
-                                   this->BaseDir);
+                                   this->baseDir);
     }
 
     bool LoadBrushModels(wxFileInputStream* infile)
@@ -132,8 +132,8 @@ public:
 
     LinkedList<wxUint32>* QuickHull(wxUint32 Start, wxUint32 End, LinkedList<wxUint32>* Right, QuME_Vector& Normal);
 
-    wxString BaseDir; //used to track down resources
-    wxString MapName; //the name of this map from load
+    std::wstring baseDir; //used to track down resources
+    std::wstring MapName; //the name of this map from load
     wxUint32 IBSPMagic; //this map's 'magic' check value
     wxUint32 BSPVersion; //this map's version number
     wxUint32 EntCount; //how many entities we found on load

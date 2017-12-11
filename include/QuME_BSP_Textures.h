@@ -12,11 +12,11 @@ public:
     ~QuME_BSP_Textures();
 
     void DebugDump(wxTextOutputStream& out);
-    bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length, const wxString& baseDir);
+    bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length, const std::wstring& baseDir);
 
     wxUint32 Count;
     QuME_BSP_Texture* Texture;
-    wxString FaultTexture;
+    std::wstring FaultTexture;
 };
 
 #endif // QuME_BSP_TEXTURES_H

@@ -13,13 +13,13 @@ class QuME_Frame; //forward declaration to shut up compiler complaining
 class QuME_BSP_Load : public wxThread
 {
 public:
-    QuME_BSP_Load(QuME_Frame* frame, QuME_BSP_Data* BSPData, const wxString& FileName);
+    QuME_BSP_Load(QuME_Frame* frame, QuME_BSP_Data* BSPData, const std::wstring& FileName);
     ~QuME_BSP_Load();
-    virtual void* Entry() wxOVERRIDE;
-    virtual void OnExit() wxOVERRIDE;
+    virtual void* Entry();
+    virtual void OnExit();
 
     QuME_Frame* Frame;
-    wxString BSPFileName; //The actual file we'll be opening
+    std::wstring BSPFileName; //The actual file we'll be opening
     bool FileError; //set if a file read error happens
     QuME_BSP_Data* Data; //the BSP class instance we'll be loading data into
 };

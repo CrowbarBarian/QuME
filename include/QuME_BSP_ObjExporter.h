@@ -17,19 +17,19 @@ class QuME_BSP_ObjExporter : public wxThread
 public:
     QuME_BSP_ObjExporter(QuME_Frame* frame,
                          QuME_BSP_Data* BSPData,
-                         const wxString& BaseFileName,
-                         const wxString& FullPath);
+                         const std::wstring& BaseFileName,
+                         const std::wstring& FullPath);
 
     // thread execution starts here
-    virtual void* Entry() wxOVERRIDE;
+    virtual void* Entry();
 
     // called when the thread exits - whether it terminates normally or is
     // stopped with Delete() (but not when it is Kill()ed!)
-    virtual void OnExit() wxOVERRIDE;
+    virtual void OnExit();
 
     QuME_Frame* Frame;
-    wxString StrippedFileName;
-    wxString FullPathNoExt;
+    std::wstring StrippedFileName;
+    std::wstring FullPathNoExt;
     bool FileError;
     QuME_BSP_Data* Data;
 };

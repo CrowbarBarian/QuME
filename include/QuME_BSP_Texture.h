@@ -13,16 +13,16 @@ class QuME_BSP_Texture
 public:
     void DebugDump(wxTextOutputStream& out)
     {
-        out << "U-Axis: ";
+        out << L"U-Axis: ";
         uAxis.DebugDump(out);
-        out << "U Offset: " << uOffset << "\n";
-        out << "V-Axis: ";
+        out << L"U Offset: " << uOffset << L"\n";
+        out << L"V-Axis: ";
         vAxis.DebugDump(out);
-        out << "V Offset: " << vOffset << "\n";
-        out << "Flags: " << Flags << "\n";
-        out << "Value: " << Value << "\n";
-        out << "Texture Name: " << MaterialName << "\n";
-        out << "Next Texture Info: " << NextTexInfo << "\n";
+        out << L"V Offset: " << vOffset << L"\n";
+        out << L"Flags: " << Flags << L"\n";
+        out << L"Value: " << Value << L"\n";
+        out << L"Texture Name: " << MaterialName << L"\n";
+        out << L"Next Texture Info: " << NextTexInfo << L"\n";
     }
 
     QuME_Vector uAxis;
@@ -33,7 +33,7 @@ public:
     wxUint32 Value;
     wxUint32 xRes;
     wxUint32 yRes;
-    wxString MaterialName;
+    std::wstring MaterialName;
     wxInt32 NextTexInfo;
 };
 

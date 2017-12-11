@@ -6,7 +6,7 @@
 		<id_arg>0</id_arg>
 		<object class="wxGridBagSizer" variable="GridBagSizer1" member="no">
 			<object class="sizeritem">
-				<object class="wxTextCtrl" name="ID_TEXTCTRL1" variable="TextCtrl1" member="yes">
+				<object class="wxTextCtrl" name="ID_INFOCONSOLE" variable="TextCtrl1" member="yes">
 					<size>400,200</size>
 					<font>
 						<size>10</size>
@@ -26,7 +26,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT1" variable="StaticText1" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_FACEINSPECTOR" variable="StaticText1" member="yes">
 					<label>Face Inspector:</label>
 				</object>
 				<col>0</col>
@@ -61,7 +61,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT3" variable="StaticText3" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_TEXTUREINSPECTOR" variable="StaticText3" member="yes">
 					<label>Texture Inspector:</label>
 				</object>
 				<col>0</col>
@@ -71,7 +71,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT2" variable="StaticText2" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_ENTITYINSPECTOR" variable="StaticText2" member="yes">
 					<label>Entity Inspector:</label>
 				</object>
 				<col>0</col>
@@ -93,7 +93,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT4" variable="StaticText4" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_INFOCONSOLE" variable="StaticText4" member="yes">
 					<label>Info Console</label>
 				</object>
 				<col>0</col>
@@ -103,7 +103,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT5" variable="StaticText5" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_PREVIEWWINDOW" variable="StaticText5" member="yes">
 					<label>Preview Window</label>
 				</object>
 				<col>3</col>
@@ -113,7 +113,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT6" variable="StaticText6" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_XROTATION" variable="StaticText6" member="yes">
 					<label>X Rotation</label>
 				</object>
 				<col>2</col>
@@ -138,7 +138,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT7" variable="StaticText7" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_YROTATION" variable="StaticText7" member="yes">
 					<label>Y Rotation</label>
 				</object>
 				<col>2</col>
@@ -148,7 +148,7 @@
 				<option>1</option>
 			</object>
 			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT8" variable="StaticText8" member="yes">
+				<object class="wxStaticText" name="ID_STATICTEXT_ZROTATION" variable="StaticText8" member="yes">
 					<label>Z Rotation</label>
 				</object>
 				<col>2</col>
@@ -225,13 +225,13 @@
 				</object>
 			</object>
 		</object>
-		<object class="wxStatusBar" name="ID_STATUSBAR1" variable="StatusBar1" member="yes">
+		<object class="wxStatusBar" name="1" variable="StatusBar1" member="yes">
 			<fields>1</fields>
 			<widths>-1</widths>
 			<styles>wxSB_NORMAL</styles>
 			<style>wxRAISED_BORDER</style>
 		</object>
-		<object class="wxTimer" name="ID_TIMER1" variable="Timer1" member="yes">
+		<object class="wxTimer" name="ID_REFRESHTIMER" variable="Timer1" member="yes">
 			<interval>100</interval>
 			<handler function="OnTimer1Trigger" entry="EVT_TIMER" />
 		</object>

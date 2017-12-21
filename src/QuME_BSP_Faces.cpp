@@ -13,9 +13,18 @@ QuME_BSP_Face::QuME_BSP_Face()
 
 QuME_BSP_Face::~QuME_BSP_Face()
 {
-    delete[] this->VertexArray;
-    delete[] this->TextureUV;
-    delete[] this->Triangle;
+    SAFE_ARRAY_DELETE(this->VertexArray);
+    SAFE_ARRAY_DELETE(this->TextureUV);
+    SAFE_ARRAY_DELETE(this->Triangle);
+    while(Head != nullptr)
+	{
+		VertexList* t = Head->next;
+		delete Head;
+		Head = t;
+	}
+	Tail = nullptr;
+    VertexListCount = 0;
+    TriangleCount = 0;
 }
 
 //private Triangulate() helper method
@@ -32,18 +41,28 @@ VertexList* QuME_BSP_Face::AddVertexToList(wxUint32 v, wxUint32 UV)
         Tail = Head;
         return Head;
     }
+    else if (Tail == Head)
+	{
+		Head->next = new VertexList;
+		Tail = Head->next;
+		Tail->prev = Head;
+		Tail->next = nullptr;
+		Tail->VertexIndex = v;
+		Tail->UVIndex = UV;
+		VertexListCount++;
+		return Tail;
+	}
     else
     {
-        VertexList* t = Tail;
-        t->next = new VertexList();
-        t = t->next;
-        t->prev = Tail;
-        Tail = t;
-        t->next = nullptr;
-        t->VertexIndex = v;
-        t->UVIndex = UV;
+    	assert(Tail->next == nullptr);
+		Tail->next = new VertexList;
+        Tail->next->prev = Tail;
+        Tail = Tail->next;
+        Tail->next = nullptr;
+        Tail->VertexIndex = v;
+        Tail->UVIndex = UV;
         VertexListCount++;
-        return t;
+        return Tail;
     }
 }
 
@@ -110,6 +129,7 @@ VertexList* QuME_BSP_Face::RemoveVertexFromList(wxUint32 v)
 //this only works on convex polygons (no checks for concavity!)
 wxInt32 QuME_BSP_Face::Triangulate()
 {
+
     for(wxInt32 i = 0; i < EdgeCount; i++)
     {
         AddVertexToList(VertexArray[i], TextureUV[i]);
@@ -162,13 +182,13 @@ QuME_BSP_Faces::~QuME_BSP_Faces()
 {
     //dtor
     this->Count = 0;
-    if(this->Face != nullptr) delete[] this->Face;
+    SAFE_ARRAY_DELETE(this->Face);
     this->Face = nullptr;
 }
 
 bool QuME_BSP_Faces::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length)
 {
-    this->Count = length / 20;
+    this->Count = length / Q2_BSP_FACE_DATA_SIZE;
 
     wxDataInputStream* binData = new wxDataInputStream( *infile );
 

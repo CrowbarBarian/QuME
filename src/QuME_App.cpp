@@ -25,7 +25,7 @@ bool QuME_App::OnInit()
     wxInitAllImageHandlers();
     if ( wxsOK )
     {
-    	QuME_Frame* Frame = new QuME_Frame(0);
+    	QuME_Frame* Frame = new QuME_Frame(0, -1);
     	Frame->Show();
     	SetTopWindow(Frame);
     }

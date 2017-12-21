@@ -52,7 +52,7 @@ QuME_BSP_Entity& QuME_BSP_Entity::operator=(const QuME_BSP_Entity& o)
     return true;
 }*/
 
-bool QuME_BSP_Entity::addKey(const std::wstring name, const std::wstring value)
+bool QuME_BSP_Entity::addKey(const std::wstring &name, const std::wstring &value)
 {
     this->keyCount++;
     ent_key* k=nullptr;
@@ -76,10 +76,12 @@ bool QuME_BSP_Entity::addKey(const std::wstring name, const std::wstring value)
     return true;
 }
 
+#if 0
 void QuME_BSP_Entity::SetIndex(wxUint32 index)
 {
     this->index = index;
 }
+
 
 wxUint32 QuME_BSP_Entity::GetIndex()
 {
@@ -90,6 +92,7 @@ wxUint32 QuME_BSP_Entity::GetKeyCount()
 {
     return this->keyCount;
 }
+#endif // 0
 
 void QuME_BSP_Entity::DebugDump(wxTextOutputStream& out)
 {

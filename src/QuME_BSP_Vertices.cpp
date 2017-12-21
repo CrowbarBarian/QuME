@@ -3,20 +3,20 @@
 
 QuME_BSP_Vertices::QuME_BSP_Vertices()
 {
-    this->ArrayCount = 0;
+    this->VertexCount = 0;
     this->VertexArray = nullptr;
 }
 
 QuME_BSP_Vertices::~QuME_BSP_Vertices()
 {
-    this->ArrayCount = 0;
+    this->VertexCount = 0;
     SAFE_ARRAY_DELETE(this->VertexArray);
     this->VertexArray = nullptr;
 }
 
-bool QuME_BSP_Vertices::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length)
+bool QuME_BSP_Vertices::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength)
 {
-    this->ArrayCount = length / 12;
+    this->VertexCount = lumpLength / Q2_BSP_VERTEX_DATA_SIZE;
 
     wxDataInputStream* binData = new wxDataInputStream( *infile );
 
@@ -32,7 +32,7 @@ bool QuME_BSP_Vertices::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
         return false;
     }
 
-    this->VertexArray = new QuME_Vector[this->ArrayCount];
+    this->VertexArray = new QuME_Vector[this->VertexCount];
     if(this->VertexArray == nullptr)
     {
         delete binData;
@@ -41,12 +41,11 @@ bool QuME_BSP_Vertices::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
 
     binData->UseBasicPrecisions(); //Need this to Get correct input data
 
-    for(wxUint32 i = 0; i < this->ArrayCount; i++)
+    for(wxUint32 i = 0; i < this->VertexCount; i++)
     {
-        for(wxUint32 j = 0; j < 3; j++)
-        {
-            this->VertexArray[i].vec[j] = binData->ReadFloat();
-        }
+		this->VertexArray[i].x = binData->ReadFloat();
+		this->VertexArray[i].y = binData->ReadFloat();
+		this->VertexArray[i].z = binData->ReadFloat();
     }
 
     if(!binData->IsOk())
@@ -62,8 +61,8 @@ bool QuME_BSP_Vertices::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
 
 void QuME_BSP_Vertices::DebugDump(wxTextOutputStream& out)
 {
-    out << L"Vertices: " << this->ArrayCount << L"\n";
-    for(wxUint32 i = 0; i < this->ArrayCount; i++)
+    out << L"Vertices: " << this->VertexCount << L"\n";
+    for(wxUint32 i = 0; i < this->VertexCount; i++)
     {
         out << L"Vertex " << i << ": ";
         this->VertexArray[i].DebugDump(out);

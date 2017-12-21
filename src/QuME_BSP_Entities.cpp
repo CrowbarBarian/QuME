@@ -1,136 +1,276 @@
 #include "QuME_BSP_Entities.h"
 
+QuME_KeyPair::QuME_KeyPair()
+:KeyName(L""), KeyValue(L"")
+{
+}
+
+QuME_KeyPair::QuME_KeyPair(const std::wstring& inName, const std::wstring& inValue)
+:KeyName(inName), KeyValue(inValue)
+{
+}
+
+QuME_KeyPair::~QuME_KeyPair()
+{
+}
+
+QuME_KeyPair& QuME_KeyPair::operator=(const QuME_KeyPair& o)
+{
+	this->KeyName = o.KeyName;
+	this->KeyValue = o.KeyValue;
+
+	return *this;
+}
+
+enum KEY_PARSE_STATE
+{
+	KEY_NAME_START,
+    KEY_NAME,
+    KEY_VAL_START,
+    KEY_VAL
+};
+
+bool QuME_KeyPair::ParseKeyPair(wxUint8* buffer, wxUint32& currentIndex, wxUint32 length)
+{
+    bool success = true;
+    wxUint32 localIndex = 0;
+    wchar_t kn[256]; //temporary buffers
+    wchar_t kv[256];
+    bool done = false;
+    KEY_PARSE_STATE state = KEY_NAME_START;
+
+    while((!done) && (currentIndex < length))
+    {
+        switch(state)
+        {
+        case KEY_NAME_START:
+            if(buffer[currentIndex] == '\"') //found start of key name, now to parse it
+            {
+                currentIndex++;
+                state = KEY_NAME;
+            }
+            else if(buffer[currentIndex] <= ' ') //whitespace, just consume it
+            {
+                currentIndex++;
+            }
+            else //screwy value found, fuggedaboudit!
+			{
+				success = false;
+				done = true;
+			}
+            break;
+
+        case KEY_NAME:
+            if(buffer[currentIndex] == '\"') //end of key name, now parse key value
+            {
+                currentIndex++;
+                kn[localIndex] = 0; //terminate key name string with null
+                localIndex = 0;
+                state = KEY_VAL_START;
+            }
+            else if(localIndex > 255) //string went on too long, error out
+            {
+                success = false;
+                done = true;
+            }
+            else //copy over key name character to temp buffer
+            {
+                kn[localIndex++] = buffer[currentIndex++];
+            }
+            break;
+
+		case KEY_VAL_START:
+            if(buffer[currentIndex] == '\"') //found start of key value, now to parse it
+            {
+                currentIndex++;
+                state = KEY_VAL;
+            }
+            else if(buffer[currentIndex] <= ' ') //whitespace, just consume it
+            {
+                currentIndex++;
+            }
+            else //screwy value found, cheese it!
+			{
+				success = false;
+				done = true;
+			}
+            break;
+
+        case KEY_VAL:
+            if(buffer[currentIndex] == '\"') //end of key value, done!
+            {
+                currentIndex++;
+                kv[localIndex] = 0; //terminate key value string with null
+                done = true;
+            }
+            else if(localIndex > 255) //string went on too long, error out
+            {
+                success = false;
+                done = true;
+            }
+            else //copy key value character over to temp buffer
+            {
+                kv[localIndex++] = buffer[currentIndex++];
+            }
+            break;
+        }
+    }
+    if(success)
+	{
+		this->KeyName = kn;
+		this->KeyValue = kv;
+	}
+
+    return success;
+}
+
+QuME_Entity::QuME_Entity()
+{
+	this->KeyArray = nullptr;
+	this->KeyCount = 0;
+}
+
+QuME_Entity::QuME_Entity(const QuME_Entity& o)
+{
+//    SAFE_ARRAY_DELETE(this->KeyArray);
+    this->KeyArray = nullptr;
+    this->KeyCount = 0;
+    this->Keys.Append(o.Keys);
+    this->KeyCount = this->Keys.ToArray(this->KeyArray);
+}
+
+QuME_Entity::~QuME_Entity()
+{
+	KeyCount = 0;
+	SAFE_ARRAY_DELETE(KeyArray);
+	KeyArray = nullptr;
+}
+
+QuME_Entity& QuME_Entity::operator=(const QuME_Entity& o)
+{
+	SAFE_ARRAY_DELETE(this->KeyArray);
+	this->KeyArray = nullptr;
+	this->KeyCount = 0;
+	this->Keys.Append(o.Keys);
+	this->KeyCount = this->Keys.ToArray(this->KeyArray);
+	return *this;
+}
+
+bool QuME_Entity::ParseEntity(wxUint8* buffer, wxUint32& currentIndex, wxUint32 length)
+{
+    bool success = true;
+    bool done = false;
+    QuME_KeyPair kp;
+
+    while((!done) && (currentIndex < length))
+    {
+    	if(buffer[currentIndex] <= ' ') //eat whitespace
+		{
+			currentIndex++;
+		}
+    	else if(buffer[currentIndex] == '}') //end of entity, done
+		{
+			currentIndex++;
+			done = true;
+		}
+		else if(buffer[currentIndex] == '\"') //another key pair to process
+		{
+			success = kp.ParseKeyPair(buffer, currentIndex, length);
+			if(!success)
+			{
+				done = true;
+			}
+			else
+			{
+				this->Keys.Append(kp);
+			}
+		}
+		else //something weird showed up, abort!
+		{
+			success = false;
+			done = true;
+		}
+    }
+    if(success)
+	{
+		this->KeyCount = this->Keys.ToArray(this->KeyArray);
+		//this->EntityList.Append(CurrentEntity);
+	}
+    return success;
+}
+
 QuME_BSP_Entities::QuME_BSP_Entities()
 {
-    this->Count = 0;
-    this->EntList = nullptr;
-    this->Entity = nullptr;
+    this->EntityCount = 0;
+    this->EntityArray = nullptr;
 }
 
 QuME_BSP_Entities::~QuME_BSP_Entities()
 {
-    for(QuME_BSP_EntList* i = this->EntList; i != nullptr;) //delete entities
-    {
-        QuME_BSP_EntList* t = i->next;
-        delete i;
-        i = t;
-    }
-    delete[] this->Entity;
+    SAFE_ARRAY_DELETE(this->EntityArray);
+    this->EntityArray = nullptr;
 }
 
-QuME_BSP_EntList* QuME_BSP_Entities::createNewEnt(wxUint32 index)
+enum ENT_PARSE_STATE
 {
-    if (this->EntList == nullptr) //list is empty, initialize first entry
-    {
-        this->EntList = new QuME_BSP_EntList;
-        this->EntList->next = nullptr;
-        this->EntList->entity.index = index;
-        this->Count++;
-        return EntList;
-    }
-    else
-    {
-        QuME_BSP_EntList* t = this->EntList;
-        while(t->next != nullptr) //find end of list
-        {
-            t = t->next;
-        }
-        t->next = new QuME_BSP_EntList; //found it, create new entity
-        this->Count++;
-        t = t->next;
-        t->next = nullptr;
-        t->entity.index = index;
-        return t;
-    }
-}
-
-QuME_BSP_Entity* QuME_BSP_Entities::GetEntity(wxUint32 index)
-{
-    for(QuME_BSP_EntList* t = this->EntList; t != nullptr; t = t->next)
-    {
-        if(t->entity.GetIndex() == index)
-            return &t->entity;
-    }
-    return nullptr;
-}
-
-
-enum STRING_PARSE_STATE
-{
-    STR_START = 0,
-    CHAR_DATA,
-    BAD_STR,
-    END_STR,
-    STR_DONE
+    START = 0,
+    NEW_ENT
 };
 
-
-wxInt32 readStringFromBuffer(wxUint8* buffer, wxUint32 offset, wxUint32 length, wxUint8** out)
+bool QuME_BSP_Entities::ParseEntities(wxUint8* buffer, wxUint32 length)
 {
-    wxUint32 i = offset;
+    bool success = true;
+    wxUint32 currentIndex = 0;
+    ENT_PARSE_STATE state = START;
+    QuME_Entity* CurrentEntity = new QuME_Entity();
+    bool done = false;
 
-    if(i >= length)
+    //state machine to parse entity key name/value pairs
+    while((currentIndex < length) && (!done))
     {
-        return 0;
-    }
-    if(buffer[i] == '\"')
-    {
-        i++; //skip over starting quote
-    }
-    STRING_PARSE_STATE sps = STR_START;
-
-    while((i < length) && (sps != STR_DONE))
-    {
-        switch(sps)
+        switch(state)
         {
-            case STR_START:
+        case START:
+        	if(buffer[currentIndex] <= ' ') //eat whitespace at start
+			{
+				currentIndex++;
+			}
+        	else if(buffer[currentIndex] == '{') //start of entities
+			{
+				currentIndex++;
+				state = NEW_ENT;
+			}
+			else //something not expected was in the buffer, error out
+			{
+				success = false;
+				done = true;
+			}
+            break;
 
-                if(i < length)
-                {
-                    *out = &buffer[i];
-                    i++;
-                    sps = CHAR_DATA;
-                }
-                else sps = BAD_STR;
-                break;
-
-            case CHAR_DATA:
-
-                if(i < length)
-                {
-                    if(buffer[i] == '\"')
-                    {
-                        sps = END_STR;
-                    }
-                    else
-                    {
-                        i++;
-                    }
-                }
-                else sps = BAD_STR;
-                break;
-
-            case END_STR:
-
-                if(i < length)
-                {
-                    buffer[i] = 0; //append terminating null
-                    i++;
-                    sps = STR_DONE;
-                }
-                else sps = BAD_STR;
-                break;
-
-            case BAD_STR: //log this?? make error report??
-
-                sps = STR_DONE;
-                break;
-
-            case STR_DONE: break;
+        case NEW_ENT:
+        	success = CurrentEntity->ParseEntity(buffer, currentIndex, length);
+            //charsEaten = ParseEntity(&buffer[i], length - i, CurrentEntity);
+            if(!success) //error case
+            {
+                done = true;
+            }
+            else
+            {
+                this->EntityList.Append(*CurrentEntity);
+                SAFE_DELETE(CurrentEntity);
+                CurrentEntity = new QuME_Entity();
+                state = START;
+            }
+            break;
         }
     }
-
-    return i-offset;
+    if(success)
+	{
+		this->EntityCount = this->EntityList.ToArray(this->EntityArray);
+	}
+	SAFE_DELETE(CurrentEntity);
+	CurrentEntity = nullptr;
+    return success;
 }
 
 bool QuME_BSP_Entities::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length)
@@ -147,139 +287,42 @@ bool QuME_BSP_Entities::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
         return false;
     }
 
-    wxUint8 *ent_text_buf = new wxUint8[length]; //temporary buffer to parse from
-    //remember, not Unicode in BSP file!
+    wxUint8* ent_text_buf = new wxUint8[length];	//temporary buffer to parse from
+													//remember, not Unicode in BSP file!
 
     binData->Read8(ent_text_buf, length);
 
     if(!binData->IsOk())
     {
-        delete[] ent_text_buf;
+        SAFE_ARRAY_DELETE(ent_text_buf);
         return false;
     }
 
     delete binData;
+    bool result = ParseEntities(ent_text_buf, length);
 
-    ENT_PARSE_STATE state = ENT_START;
+	SAFE_ARRAY_DELETE(ent_text_buf);
 
-    wxUint32 new_index = 0;
-    wxUint32 i = 0;
+    return result;
+}
 
-    wxUint8* keyNameStart = nullptr;
-    wxUint8* keyValStart = nullptr;
-
-    std::wstring keyName;
-    std::wstring keyVal;
-
-    QuME_BSP_EntList* e = nullptr;
-
-    while((i < length) && (state != END_ENTS))
+void QuME_Entity::DebugDump(wxTextOutputStream& out)
+{
+    out << L"Keys: " << this->KeyCount << L"\n";
+    for(wxUint32 i = 0; i < this->KeyCount; i++)
     {
-        switch(state)
-        {
-            //eat whitespace at start
-            case ENT_START:
-
-                while((i < length) && (ent_text_buf[i] < ' ')) i++;
-                state = LOOKING_FOR_ENT;
-                break;
-
-            //search for the next entity in the buffer
-            case LOOKING_FOR_ENT:
-
-                while((i < length) && (ent_text_buf[i] != '{')) i++;
-                if(i >= length) state = END_ENTS; //read past the end of the buffer
-                else state = NEW_ENT;
-                break;
-
-            case NEW_ENT:
-
-                e = this->createNewEnt(new_index); //found an entity, make an entry in memory
-                new_index++;
-                i++;
-                state = KEY_NAME;
-                break;
-
-            case KEY_NAME:
-
-                while((i < length) && (ent_text_buf[i] != '\"') && (ent_text_buf[i] != '}')) i++;
-                if(ent_text_buf[i] == '}')
-                {
-                    state = END_ENT;
-                    i++;
-                }
-                else
-                {
-                    i += readStringFromBuffer(ent_text_buf, i, length, &keyNameStart);
-
-                    if(keyNameStart == nullptr)
-                    {
-                        state = BAD_ENTS;
-                    }
-                    else
-                    {
-
-                        state = KEY_VAL;
-                    }
-                }
-                break;
-
-            case KEY_VAL:
-
-                while((i < length) && (ent_text_buf[i] != '\"') && (ent_text_buf[i] != '}')) i++;
-                if(ent_text_buf[i] == '}') state = BAD_ENTS;
-
-                i += readStringFromBuffer(ent_text_buf, i, length, &keyValStart);
-                if(keyValStart == nullptr)
-                {
-                    state = BAD_ENTS;
-                }
-                else
-                {
-                    state = KEY_NAME;
-                }
-                //arg, there has to be a better way!
-                copys2ws(keyNameStart, &keyName);
-
-                copys2ws(keyValStart, &keyVal);
-
-                e->entity.addKey(keyName, keyVal);
-                break;
-
-            case END_ENT:
-
-                state = LOOKING_FOR_ENT;
-                break;
-
-            case END_ENTS: //all done!
-
-                break;
-
-            case BAD_ENTS:
-
-                delete[] ent_text_buf; //clean up
-                return false;
-                break;
-        }
+        out << this->KeyArray[i].KeyName << L": " << this->KeyArray[i].KeyValue << L"\n";
     }
 
-    //convert linked list into array, for speed
-    this->Entity = new QuME_BSP_Entity[this->Count];
-    wxUint32 counter = 0;
-    for(QuME_BSP_EntList* i = this->EntList; i != nullptr; i = i->next)
-    {
-        this->Entity[counter++] = i->entity;
-    }
-    delete[] ent_text_buf; //clean up
-    return true;
 }
 
 void QuME_BSP_Entities::DebugDump(wxTextOutputStream& out)
 {
-    out << L"Entities: " << this->Count << L"\n";
-    for(QuME_BSP_EntList* t = this->EntList; t != nullptr; t = t->next)
+    out << L"Entities: " << this->EntityCount << L"\n";
+    for(wxUint32 i = 0; i < this->EntityCount; i++)
     {
-        t->entity.DebugDump(out);
+        out << L"Entity #" << i << L"\n";
+        this->EntityArray[i].DebugDump(out);
     }
     out << L"\n------------------------------------------------\n";
 }

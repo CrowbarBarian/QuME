@@ -14,7 +14,7 @@ QuME_BSP_Edges::~QuME_BSP_Edges()
 
 bool QuME_BSP_Edges::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length)
 {
-    this->Count = length / EDGE_SIZE_ON_DISK;
+    this->Count = length / Q2_BSP_EDGE_DATA_SIZE;
 
     wxDataInputStream* binData = new wxDataInputStream( *infile );
 

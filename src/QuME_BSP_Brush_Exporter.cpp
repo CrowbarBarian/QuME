@@ -1,6 +1,6 @@
-#include "QuME_BSP_ObjExporter.h"
+#include "QuME_BSP_Brush_Exporter.h"
 
-QuME_BSP_ObjExporter::QuME_BSP_ObjExporter(QuME_Frame* frame,
+QuME_BSP_Brush_Exporter::QuME_BSP_Brush_Exporter(QuME_Frame* frame,
                                            QuME_BSP_Data* BSPData,
                                            const std::wstring& BaseFileName,
                                            const std::wstring& FullPath)
@@ -11,17 +11,21 @@ QuME_BSP_ObjExporter::QuME_BSP_ObjExporter(QuME_Frame* frame,
     FileError = false;
 }
 
-void QuME_BSP_ObjExporter::OnExit()
+QuME_BSP_Brush_Exporter::~QuME_BSP_Brush_Exporter()
 {
 }
 
-//this function exports BSP data into Wavefront's .obj format
-wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
+void QuME_BSP_Brush_Exporter::OnExit()
+{
+}
+
+//this function exports BSP brush data into Wavefront's .obj format
+wxThread::ExitCode QuME_BSP_Brush_Exporter::Entry()
 {
     //flag used to bypass loops if an error happens
     FileError = false;
 
-    wxThreadEvent event(wxEVT_THREAD, OBJEXPORT_EVENT);
+    wxThreadEvent event(wxEVT_THREAD, BRUSHEXPORT_EVENT);
     wxThreadEvent logevent(wxEVT_THREAD, CONSOLELOG_EVENT);
 
     wxCriticalSectionLocker lock(Frame->CritSecBSP);
@@ -29,17 +33,16 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
     //Pointer to BSP Texture array
     QuME_BSP_Texture* tex = Data->Textures.Texture;
 
-    QuME_Vector* Vertexes = Data->Vertices.VertexArray;
-
+    //our list of material names for export
     QuME_UniqueStrings UniqueMaterialNames;
 
     //Count how many total items we will export
     wxInt32 ItemCount = Data->Textures.Count;
-    ItemCount += Data->Vertices.VertexCount;
-    ItemCount += Data->TextureUVs.UVArrayCount;
-    for(wxUint32 i = 0; i < Data->BrushModels.Count; i++)
+    ItemCount += Data->BrushSideUVs.UVArrayCount;
+    ItemCount += Data->BrushVertices.Count;
+    for(wxUint32 i = 0; i < Data->Brushes.Count; i++)
     {
-        ItemCount += Data->BrushModels.BrushModel[i].NumFaces;
+        ItemCount += Data->Brushes.Brush[i].SideCount;
     }
     wxInt32 CurrentItemCount = 0;
 
@@ -112,14 +115,17 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
     logevent.SetString(L"Exporting Vertices to " + this->FullPathNoExt + L".obj\n");
     wxQueueEvent(Frame, logevent.Clone());
 
+    *outstr << L"# Bounding box: " << Data->BrushBoundingBox.forExport() << L"\n";
+
+	*outstr << L"# Vertex Count: " << Data->BrushVertices.Count << L"\n";
+
     //reference material library
     *outstr << L"mtllib " << this->StrippedFileName << L".mtl\n";
 
     //dump all vertices to file first
-    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->Vertices.VertexCount)); i++)
+    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->BrushVertices.Count)); i++)
     {
         CurrentItemCount++;
-        //std::cout << CurrentItemCount << std::endl;
 
         //Message Main thread about progress
         wxInt32 currentProgress = CurrentItemCount * 100 / ItemCount;
@@ -130,9 +136,11 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
 			updateOld = currentProgress;
 		}
 
-        *outstr << L"v " << Vertexes[i].x * -QUME_EXPORTSCALEFACTOR;
-        *outstr << L" " << Vertexes[i].z * QUME_EXPORTSCALEFACTOR;
-        *outstr << L" " << Vertexes[i].y * QUME_EXPORTSCALEFACTOR << L"\n";
+        //*outstr << L"v " << Data->BrushVertices.Vertices[i].x * -QUME_EXPORTSCALEFACTOR;
+        //*outstr << L" " << Data->BrushVertices.Vertices[i].z * QUME_EXPORTSCALEFACTOR;
+        //*outstr << L" " << Data->BrushVertices.Vertices[i].y * QUME_EXPORTSCALEFACTOR << L"\n";
+
+        *outstr << L"v " << Data->BrushVertices.Vertices[i].forExport() << L"\n";
     }
 
     *outstr << L"\n";
@@ -140,8 +148,9 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
     logevent.SetString(L"Exporting UV Coordinates to " + this->FullPathNoExt + L".obj\n");
     wxQueueEvent(Frame, logevent.Clone());
 
+    *outstr << "# UV Count: " << Data->BrushSideUVs.UVArrayCount << "\n";
     //now dump all of the UV coordinates
-    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->TextureUVs.UVArrayCount)); i++)
+    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->BrushSideUVs.UVArrayCount)); i++)
     {
         CurrentItemCount++;
 
@@ -154,7 +163,7 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
 			updateOld = currentProgress;
 		}
 
-        *outstr << L"vt " << Data->TextureUVs.UVArray[i].U << " " << Data->TextureUVs.UVArray[i].V << "\n";
+        *outstr << L"vt " << Data->BrushSideUVs.UVArray[i].U << " " << Data->BrushSideUVs.UVArray[i].V << L"\n";
     }
 
     *outstr << L"\n";
@@ -163,26 +172,25 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
     wxQueueEvent(Frame, logevent.Clone());
 
     //loop through all the map's brush models and export one by one
-    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->BrushModels.Count)); i++)
+    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->Brushes.Count)); i++)
     {
-        QuME_BSP_BrushModel* BrushModel = &Data->BrushModels.BrushModel[i];
-        wxInt32 FirstFace = BrushModel->FirstFace;
+        QuME_BSP_Brush* CurrentBrush = &Data->Brushes.Brush[i];
+        //wxInt32 FirstSide = CurrentBrush->FirstBrushSide;
 
         logevent.SetString(L"Exporting Object #" + std::to_string(i) + L"\n");
         wxQueueEvent(Frame, logevent.Clone());
 
 
-        if(i > 0)
-        {
-            *outstr << L"o " << L"BrushModel" << L"$" << std::to_wstring(i) << L"\n";
-        }
+	    *outstr << L"o " << L"Brush" << L"$" << std::to_wstring(i) << L"\n";
 
-        //loop though all of the current brush model's faces
-        for(wxInt32 j = 0; j < BrushModel->NumFaces; j++)
-        {
-            CurrentItemCount++;
+	    *outstr << "# Brush Bounding box: " << CurrentBrush->Bounds.forExport() << "\n";
 
-            //Message Main thread about progress
+		//loop though all of the current brush model's faces
+		for(wxUint32 j = CurrentBrush->FirstBrushSide; j < CurrentBrush->FirstBrushSide + CurrentBrush->SideCount; j++)
+		{
+			CurrentItemCount++;
+
+			//Message Main thread about progress
 			wxInt32 currentProgress = CurrentItemCount * 100 / ItemCount;
 			if(currentProgress != updateOld)
 			{
@@ -191,30 +199,36 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
 				updateOld = currentProgress;
 			}
 
-            QuME_BSP_Face* CurrentFace = &Data->Faces.Face[FirstFace + j];
-            wxUint32 TexIndex = CurrentFace->TextureInfo;
+			QuME_BSP_BrushSide* CurrentSide = &Data->BrushSides.BrushSideArray.Data[j];
+			wxInt32 TexIndex = CurrentSide->TextureIndex;
 
-            std::wstring MatName = tex[TexIndex].MaterialName;
-            ReplaceAll(&MatName, L"/", L"$");
-            //MatName.Replace(L"/", L"$", true);
+			if(CurrentSide->VertexIndexArrayCount > 2)
+			{
+				if(TexIndex >=0)
+				{
+					std::wstring MatName = tex[TexIndex].MaterialName;
+					ReplaceAll(&MatName, L"/", L"$");
 
-            if(i == 0)
-            {
-                *outstr << L"o " << L"WorldGeometry" << L"$" << std::to_wstring(TexIndex) << L"\n";
-            }
+					*outstr << L"usemtl " << MatName << L"\n";
 
-            *outstr << L"usemtl " << MatName << L"\n";
-
-            for(wxUint32 k = 0; k < CurrentFace->TriangleCount; k++)
-            {
-                QuME_BSP_Triangle* t = CurrentFace->Triangle;
-                *outstr << L"f ";
-                for(wxUint32 l = 0; l < 3; l++)
-                {
-                    *outstr << t[k].v[2 - l] + 1 << "/" << t[k].uv[2 - l] + 1 << " ";
-                }
-                *outstr << L"\n";
-            }
+					*outstr << L"f ";
+					for(wxUint32 k = 0; k < CurrentSide->VertexIndexArrayCount; k++)
+					{
+						*outstr << CurrentSide->VertexIndexArray[k] + 1 << "/";
+						*outstr << CurrentSide->UVIndexArray[k] + 1 << " ";
+					}
+					*outstr << L"\n";
+				}
+				else
+				{
+					*outstr << L"usemtl none\nf ";
+					for(wxUint32 k = 0; k < CurrentSide->VertexIndexArrayCount; k++)
+					{
+						*outstr << CurrentSide->VertexIndexArray[k] + 1 << "/1 ";
+					}
+					*outstr << L"\n";
+				}
+			}
         }
         *outstr << L"\n";
     }

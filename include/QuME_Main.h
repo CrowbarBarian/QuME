@@ -30,9 +30,9 @@
 wxDECLARE_APP(QuME_App);
 
 #include "QuME_BSP_ObjExporter.h"
+#include "QuME_BSP_Brush_Exporter.h"
 #include "QuME_BSP_Load.h"
 #include "QuME_BSP_Data.h"
-//#include "FaceDialog.h"
 
 class QuME_Frame : public wxFrame
 {
@@ -43,9 +43,9 @@ class QuME_Frame : public wxFrame
         bool ObjExportCanceled();
         bool BSPImportCanceled();
 
-        wxCriticalSection* GetBSPProcessingCritSec() { return &CritSecBSP; }
-        wxCriticalSection* GetImportCritSec() { return &CritSecImportCanceled; }
-        wxCriticalSection* GetExportCritSec() { return &CritSecExportCanceled; }
+//        wxCriticalSection* GetBSPProcessingCritSec() { return &CritSecBSP; }
+//        wxCriticalSection* GetImportCritSec() { return &CritSecImportCanceled; }
+//        wxCriticalSection* GetExportCritSec() { return &CritSecExportCanceled; }
 
 
         //our event handlers
@@ -64,6 +64,10 @@ class QuME_Frame : public wxFrame
         void OnWavefrontExport(wxCommandEvent& event);
         void OnUpdateObjExport(wxUpdateUIEvent& event);
         void OnObjExportEvent(wxThreadEvent& event);
+
+        void OnBrushExport(wxCommandEvent& event);
+        void OnUpdateBrushExport(wxUpdateUIEvent& event);
+        void OnBrushExportEvent(wxThreadEvent& event);
 
         void OnUpdateBSPProcessing(wxUpdateUIEvent& event);
         void OnBSPImportEvent(wxThreadEvent& event);
@@ -173,6 +177,7 @@ class QuME_Frame : public wxFrame
 enum
 {
     OBJEXPORT_EVENT=wxID_HIGHEST+1,
+    BRUSHEXPORT_EVENT,
     BSPIMPORT_EVENT,
     BSPPROCESSING_EVENT,
     CONSOLELOG_EVENT

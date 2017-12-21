@@ -10,16 +10,16 @@ public:
     QuME_Array()
     {
         Count = 0;
-        Item = nullptr;
+        Data = nullptr;
     }
     ~QuME_Array()
     {
         Count = 0;
-        if(Item != nullptr) delete[] Item;
+        SAFE_ARRAY_DELETE(Data);
     }
 
     wxUint32 Count;
-    T* Item;
+    T* Data;
 };
 
 #endif // QUME_ARRAY_H_INCLUDED

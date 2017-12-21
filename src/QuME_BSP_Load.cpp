@@ -1,10 +1,10 @@
 #include "QuME_BSP_Load.h"
 
-QuME_BSP_Load::QuME_BSP_Load(QuME_Frame* frame, QuME_BSP_Data* BSPData, const std::wstring& FileName)
+QuME_BSP_Load::QuME_BSP_Load(QuME_Frame* frame, QuME_BSP_Data* BSPData, const std::wstring& FileName):BSPFileName(FileName)
 {
     Frame = frame;
     Data = BSPData;
-    BSPFileName = FileName;
+    //BSPFileName = FileName;
     FileError = false;
 }
 
@@ -43,8 +43,8 @@ wxThread::ExitCode QuME_BSP_Load::Entry()
 
     FileError = !input_stream.IsOk();
 
-    wxCriticalSectionLocker lock(*Frame->GetBSPProcessingCritSec());
-    wxCriticalSectionLocker lock2(*Frame->GetImportCritSec());
+    wxCriticalSectionLocker lock(Frame->CritSecBSP);
+    wxCriticalSectionLocker lock2(Frame->CritSecImportCanceled);
 
     //ternary operator "?:" used to select correct string response
     event.SetString(FileError ? L"File Open Error!\n" : L"Loading Header...\n");
@@ -145,15 +145,15 @@ wxThread::ExitCode QuME_BSP_Load::Entry()
     else
     {
         //if error, close progress dialog
-        wxThreadEvent event(wxEVT_THREAD, BSPPROCESSING_EVENT);
-        event.SetInt(-1);
-        wxQueueEvent(Frame, event.Clone());
+        wxThreadEvent progressevent(wxEVT_THREAD, BSPPROCESSING_EVENT);
+        progressevent.SetInt(-1);
+        wxQueueEvent(Frame, progressevent.Clone());
     }
 
     if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
     {
-        wxThreadEvent event(wxEVT_THREAD, BSPPROCESSING_EVENT);
-        event.SetInt(-1);
+        //wxThreadEvent event(wxEVT_THREAD, BSPPROCESSING_EVENT);
+        //event.SetInt(-1);
         event.SetString(L"Processing Brushes...\n");
         wxQueueEvent(Frame, event.Clone());
         Data->ProcessBrushes(Frame);

@@ -17,11 +17,11 @@ public:
     QuME_BSP_Entity();
     ~QuME_BSP_Entity();
     //bool addKey(const wchar_t* name, const wchar_t* value);
-    bool addKey(const std::wstring name, const std::wstring value);
+    bool addKey(const std::wstring &name, const std::wstring &value);
     QuME_BSP_Entity& operator=(const QuME_BSP_Entity& o);
-    void SetIndex(wxUint32 index);
-    wxUint32 GetIndex();
-    wxUint32 GetKeyCount();
+    //void SetIndex(wxUint32 index);
+    //wxUint32 GetIndex();
+    //wxUint32 GetKeyCount();
     void DebugDump(wxTextOutputStream& out);
 
     wxUint32 index;

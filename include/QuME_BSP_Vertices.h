@@ -6,18 +6,19 @@
 #include "QuME_Vector.h"
 #include "QuME_Lists.h"
 
+#define Q2_BSP_VERTEX_DATA_SIZE 12
+
 class QuME_BSP_Vertices
 {
     public:
         QuME_BSP_Vertices();
         ~QuME_BSP_Vertices();
-        bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length);
+        bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength);
         void DebugDump(wxTextOutputStream& out);
 
-        wxUint32 ArrayCount;
+        wxUint32 VertexCount;
         QuME_Vector* VertexArray;
-
-        LinkedList<QuME_Vector> VertexList;
+        QuME_LinkedList<QuME_Vector> VertexList;
 };
 
 #endif // QuME_BSP_VERTICES_H

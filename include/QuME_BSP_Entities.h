@@ -2,25 +2,43 @@
 #define QUME_BSPENTITIES_H_INCLUDED
 
 #include "QuME_Common.h"
+#include "QuME_Lists.h"
 
 #include "QuME_BSP_Entity.h"
 
-enum ENT_PARSE_STATE
+class QuME_KeyPair
 {
-    ENT_START = 0,
-    LOOKING_FOR_ENT,
-    NEW_ENT,
-    KEY_NAME,
-    KEY_VAL,
-    END_ENT,
-    END_ENTS,
-    BAD_ENTS
+public:
+	QuME_KeyPair();
+	QuME_KeyPair(const std::wstring& inName, const std::wstring& inValue);
+
+	QuME_KeyPair& operator=(const QuME_KeyPair& o);
+
+	~QuME_KeyPair();
+
+	bool ParseKeyPair(wxUint8* buffer, wxUint32& currentIndex, wxUint32 length);
+
+	std::wstring KeyName;
+	std::wstring KeyValue;
 };
 
-struct QuME_BSP_EntList
+class QuME_Entity
 {
-    QuME_BSP_EntList* next;
-    QuME_BSP_Entity entity;
+public:
+	QuME_Entity();
+	QuME_Entity(const QuME_Entity& o);
+
+	QuME_Entity& operator=(const QuME_Entity& o);
+
+	~QuME_Entity();
+
+	void DebugDump(wxTextOutputStream& out);
+
+    bool ParseEntity(wxUint8* buffer, wxUint32& currentIndex, wxUint32 length);
+
+	QuME_LinkedList<QuME_KeyPair> Keys;
+	QuME_KeyPair* KeyArray;
+	wxUint32 KeyCount;
 };
 
 class QuME_BSP_Entities
@@ -28,14 +46,16 @@ class QuME_BSP_Entities
 public:
     QuME_BSP_Entities();
     ~QuME_BSP_Entities();
+    bool ParseEntities(wxUint8* buffer, wxUint32 length);
     bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length);
-    QuME_BSP_Entity* GetEntity(wxUint32 index);
-    QuME_BSP_EntList* createNewEnt(wxUint32 index);
+    //wxInt32 ParseKeyPair(wxUint8* buffer, wxUint32& currentIndex, wxUint32 length;
+    //bool ParseEntities(wxUint8* buffer[], wxUint32 length);
     void DebugDump(wxTextOutputStream& out);
 
-    wxUint32 Count;
-    QuME_BSP_EntList* EntList;
-    QuME_BSP_Entity* Entity;
+    wxUint32 EntityCount;
+    //QuME_BSP_EntList* EntList;
+    QuME_Entity* EntityArray;
+    QuME_LinkedList<QuME_Entity> EntityList;
 };
 
 

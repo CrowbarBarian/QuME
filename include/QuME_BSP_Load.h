@@ -1,5 +1,5 @@
-#ifndef QUME_BSPLOADQUME_BSP_H
-#define QUME_BSPLOADQUME_BSP_H
+#ifndef QUME_BSPLOAD_H
+#define QUME_BSPLOAD_H
 
 #include "QuME_App.h"
 wxDECLARE_APP(QuME_App);
@@ -24,4 +24,4 @@ public:
     QuME_BSP_Data* Data; //the BSP class instance we'll be loading data into
 };
 
-#endif // QuME_BSP_LOADQUME_BSP_H
+#endif // QuME_BSP_LOAD_H

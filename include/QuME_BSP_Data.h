@@ -6,8 +6,8 @@
  * Copyright: J Thomas (Crowbarbarian) ()
  * License:   GPL v3
  **************************************************************/
-#ifndef QUME_BSPData_H_INCLUDED
-#define QUME_BSPData_H_INCLUDED
+#ifndef QUME_BSPDATA_H_INCLUDED
+#define QUME_BSPDATA_H_INCLUDED
 
 #include "QuME_Common.h"
 #include <wx/thread.h>
@@ -26,8 +26,12 @@ class QuME_Frame;
 #include "QuME_BSP_TextureUVs.h"
 #include "QuME_BSP_Planes.h"
 #include "QuME_BSP_Brushes.h"
+#include "QuME_BSP_Vertices.h"
+#include "QuME_BSP_Brush_Vertices.h"
 #include "QuME_Lists.h"
 #include "QuME_Line.h"
+#include "QuME_Vector.h"
+#include "QuME_Bounds.h"
 
 #define QUME_QUAKE_2_BSP_MAGIC (('I') | ('B' << 8) | ('S' << 16) | ('P' << 24))
 #define BSP_LUMP_VERSION_TABLE_MAX 1 //we only support Quake 2 for now
@@ -130,7 +134,7 @@ public:
     wxUint32 GetLumpTableOffset(wxUint32 version);
     void DebugDump(wxTextOutputStream& out);
 
-    LinkedList<wxUint32>* QuickHull(wxUint32 Start, wxUint32 End, LinkedList<wxUint32>* Right, QuME_Vector& Normal);
+    QuME_LinkedList<wxUint32>* QuickHull2D(wxUint32 Start, wxUint32 End, QuME_LinkedList<wxUint32>* Right, QuME_Vector& Normal);
 
     std::wstring baseDir; //used to track down resources
     std::wstring MapName; //the name of this map from load
@@ -138,7 +142,6 @@ public:
     wxUint32 BSPVersion; //this map's version number
     wxUint32 EntCount; //how many entities we found on load
     QuME_BSP_Lumps LumpTable;
-    wxUint32 VertexCount; //how many vertices are in this BSP file
     QuME_BSP_Vertices Vertices; //the shared vertices in this file
     QuME_BSP_Entities Entities; //the file's entities
     QuME_BSP_Faces Faces; //the polygons of this map
@@ -147,10 +150,16 @@ public:
     QuME_BSP_Textures Textures; //texture info
     QuME_BSP_TextureUVs TextureUVs; //the UV coordinates of our vertices
     QuME_BSP_BrushModels BrushModels; //the brush models in this map - model #0 is the level itself
+
+    //the original brush data
     QuME_BSP_Planes Planes;
     QuME_BSP_Brushes Brushes;
     QuME_BSP_BrushSides BrushSides;
-    QuME_BSP_Vertices BrushVertices;
+    QuME_BSP_TextureUVs BrushSideUVs;
+    QuME_BSP_Brush_Vertices BrushVertices;
+    QuME_Bounds BrushBoundingBox;
+    QuME_Vector Level_BBox_Min;
+    QuME_Vector Level_BBox_Max;
 
 
 };

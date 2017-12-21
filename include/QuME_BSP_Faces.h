@@ -5,6 +5,8 @@
 
 #include "QuME_BSP_Edges.h"
 
+#define Q2_BSP_FACE_DATA_SIZE 20
+
 
 struct QuME_BSP_Triangle
 {

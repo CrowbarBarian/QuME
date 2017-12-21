@@ -50,6 +50,7 @@ const long QuME_Frame::ID_MAINGLCANVAS = wxNewId();
 
 BEGIN_EVENT_TABLE(QuME_Frame,wxFrame)
     EVT_THREAD(OBJEXPORT_EVENT, QuME_Frame::OnObjExportEvent)
+	EVT_THREAD(BRUSHEXPORT_EVENT, QuME_Frame::OnBrushExportEvent)
     EVT_THREAD(BSPIMPORT_EVENT, QuME_Frame::OnBSPImportEvent)
     EVT_THREAD(BSPPROCESSING_EVENT, QuME_Frame::OnBSPProcessingEvent)
     EVT_THREAD(CONSOLELOG_EVENT, QuME_Frame::OnConsoleLogEvent)
@@ -57,12 +58,12 @@ END_EVENT_TABLE()
 
 QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
 {
-    wxMenuItem* menuQuit;
-    wxMenuItem* menuAbout;
-    wxMenu* fileMenu;
-    wxMenu* menuHelp;
-    wxMenuBar* menuBar;
-    wxGridBagSizer* mainGridBagSizer;
+    wxMenuItem* menuQuit = nullptr;
+    wxMenuItem* menuAbout = nullptr;
+    wxMenu* fileMenu = nullptr;
+    wxMenu* menuHelp = nullptr;
+    wxMenuBar* menuBar = nullptr;
+    wxGridBagSizer* mainGridBagSizer = nullptr;
     std::wstring title = L"QuME v";
     title += QUME_VERSION;
 
@@ -112,7 +113,14 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     mainGridBagSizer->Add(staticTextPreviewWindow, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
 
     //wxWidgets 3.0.3
-    mainGLCanvas = new wxGLCanvas(this, ID_MAINGLCANVAS, nullptr, wxDefaultPosition, wxSize(200,200), 0, L"ID_MAINGLCANVAS", wxNullPalette);
+    mainGLCanvas = new wxGLCanvas(this,
+								ID_MAINGLCANVAS,
+								nullptr,
+								wxDefaultPosition,
+								wxSize(200,200),
+								0,
+								L"ID_MAINGLCANVAS",
+								wxNullPalette);
 
 /*	//wxWidgets 3.1
     wxGLAttributes dispAttrs;
@@ -271,7 +279,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     menuExport = new wxMenuItem(fileMenu, ID_MENU_EXPORT, L"&Export to .obj/.mtl...\tAlt-E", L"Export current BSP data to Wavefront format", wxITEM_NORMAL);
     fileMenu->Append(menuExport);
     menuExport->Enable(false);
-    menuBrushes = new wxMenuItem(fileMenu, ID_MENU_BRUSHES, L"Export Brushes to .obj...", L"Export BSP Brushes to Wavefront format", wxITEM_NORMAL);
+    menuBrushes = new wxMenuItem(fileMenu, ID_MENU_BRUSHES, L"Export Brushes to .obj/.mtl...", L"Export BSP Brushes to Wavefront format", wxITEM_NORMAL);
     fileMenu->Append(menuBrushes);
     menuBrushes->Enable(false);
     fileMenu->AppendSeparator();
@@ -322,7 +330,10 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENU_OPEN, wxEVT_UPDATE_UI, (wxObjectEventFunction)&QuME_Frame::OnUpdateBSPProcessing);
 
     Connect(ID_MENU_EXPORT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&QuME_Frame::OnWavefrontExport);
-    Connect(ID_MENU_EXPORT, wxEVT_UPDATE_UI, (wxObjectEventFunction)&QuME_Frame::OnUpdateObjExport);
+    Connect(ID_MENU_EXPORT, wxEVT_UPDATE_UI, (wxObjectEventFunction)&QuME_Frame::OnUpdateBrushExport);
+
+    Connect(ID_MENU_BRUSHES, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&QuME_Frame::OnBrushExport);
+
 
     Connect(ID_MENU_BASEDIR, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&QuME_Frame::OnSetBasedir);
 
@@ -339,7 +350,9 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     {
         infoConsole->AppendText(L"Game directory not set yet\nPlease set your Quake 2 baseq2 directory in \'Options...\'\n\n");
     }
-    bsp = nullptr;
+    this->bsp = nullptr;
+    this->BSPProcessingProgressDialog = nullptr;
+
 
     //FaceExaminerDialog = nullptr;
 }
@@ -366,8 +379,9 @@ QuME_Frame::~QuME_Frame()
     wxGetApp().AllDone.Wait();
 
     //Wait until all threads have exited before deleting BSP Data
-    delete this->bsp;
-    delete this->configuration;
+    SAFE_DELETE(this->bsp);
+    SAFE_DELETE(this->configuration);
+    SAFE_DELETE(this->glContext);
 }
 
 bool QuME_Frame::ObjExportCanceled()
@@ -474,14 +488,13 @@ void QuME_Frame::OnWavefrontExport(wxCommandEvent& event)
                                 wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
 
     if (saveFileDialog.ShowModal() == wxID_CANCEL)
-        return;     // the user changed idea...
+        return;     // the user changed their mind...
 
     wxMessageDialog errorbox(this, L"Can't save to file!", L"Error!", wxOK|wxICON_ERROR|wxCENTER);
 
     std::wstring mapFileName(saveFileDialog.GetPath());
     std::wstring FullPath = mapFileName;
     ReplaceAll(&FullPath, L".obj", L"");
-    //mapFileName.EndsWith(L".obj", &FullPath);
 
     QuME_BSP_ObjExporter *thread = new QuME_BSP_ObjExporter(this, bsp, MapNameNoExt, FullPath);
 
@@ -495,146 +508,41 @@ void QuME_Frame::OnWavefrontExport(wxCommandEvent& event)
     exportCanceled = false;
 
     thread->Run();
-
-    //BSP->ExportToWavefront(this);
 }
 
-void QuME_Frame::OnSpinFaceExamineChange(wxSpinEvent& event)
+void QuME_Frame::OnBrushExport(wxCommandEvent& event)
 {
-    wxUint32 i = spinFaceExamine->GetValue();
-    if(i >= bsp->Faces.Count)
-    {
-        spinFaceExamine->SetValue(0);
-        i = 0;
-    }
-    QuME_BSP_Face* f = &bsp->Faces.Face[i];
-    QuME_BSP_Texture* t = &bsp->Textures.Texture[f->TextureInfo];
-    wxInt32* SEdge = bsp->SurfaceEdges.SurfaceEdge;
-    QuME_BSP_Edge* BSPEdges = bsp->Edges.EdgeArray;
-    if(f != nullptr)
-    {
-        infoConsole->AppendText(L"*-----------------------------*\n");
-        infoConsole->AppendText(L"Face #" + std::to_wstring(i) + L"\n");
-        infoConsole->AppendText(L"Plane #" + std::to_wstring(f->Plane) + L"\n");
-        infoConsole->AppendText(L"Plane side: " + std::to_wstring(f->PlaneSide) + L"\n");
-        infoConsole->AppendText(L"Edge count: " + std::to_wstring(f->EdgeCount) + L"\n");
-        infoConsole->AppendText(L"First edge index: " + std::to_wstring(f->FirstEdge) + L"\n");
-        for(wxInt32 j = 0; j < f->EdgeCount; j++)
-        {
-            wxUint32 firstEdge = f->FirstEdge;
-            QuME_BSP_Edge* vertindexes = &BSPEdges[SEdge[firstEdge + j]];
-            infoConsole->AppendText(std::to_wstring(vertindexes->a) + L" " + std::to_wstring(vertindexes->b) + L"\n");
-        }
-        for(wxUint32 j = 0; j < f->TriangleCount; j++)
-        {
-            infoConsole->AppendText(L"Triangle " + std::to_wstring(j) + L"\n");
-            for(wxInt32 k = 0; k < 3; k++)
-            {
-                infoConsole->AppendText(std::to_wstring(f->Triangle[j].v[k]) + L" ");
-            }
-            infoConsole->AppendText(L"\n");
-        }
-        infoConsole->AppendText(L"Texture Name: " + t->MaterialName + L"\n\n");
-    }
-}
+    std::wstring MapNameNoExt = bsp->MapName;
+    ReplaceAll(&MapNameNoExt, L".bsp", L""); //strip off .bsp extension
 
-void QuME_Frame::OnSpinEntityExamineChange(wxSpinEvent& event)
-{
-    wxUint32 i = spinEntityToExamine->GetValue();
-    if(i >= bsp->Entities.Count)
+    wxFileDialog saveFileDialog(this,
+								L"Export BSP to OBJ",
+								bsp->baseDir,
+								MapNameNoExt + L"_brushes.obj",
+                                L"OBJ files (*.obj)|*.obj",
+                                wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
+
+    if (saveFileDialog.ShowModal() == wxID_CANCEL)
+        return;     // the user changed their mind...
+
+    wxMessageDialog errorbox(this, L"Can't save to file!", L"Error!", wxOK|wxICON_ERROR|wxCENTER);
+
+    std::wstring mapFileName(saveFileDialog.GetPath());
+    std::wstring FullPath = mapFileName;
+    ReplaceAll(&FullPath, L".obj", L"");
+
+    QuME_BSP_Brush_Exporter *thread = new QuME_BSP_Brush_Exporter(this, bsp, MapNameNoExt, FullPath);
+
+    if ( thread->Create() != wxTHREAD_NO_ERROR )
     {
-        spinEntityToExamine->SetValue(0);
-        i = 0;
+        errorbox.ShowModal();
+        return;
     }
 
-    infoConsole->AppendText(L"*-----------------------------*\n");
-    infoConsole->AppendText(L"Entity #" + std::to_wstring(i) + L"\n");
-    for(ent_key* k = bsp->Entities.Entity[i].keys; k != nullptr; k = k->next)
-    {
-        infoConsole->AppendText(L"\"" + k->keyName + L"\" \"" + k->keyValue + L"\"\n");
-    }
-    infoConsole->AppendText(L"\n");
+    // thread is not running yet, no need for crit sect
+    exportCanceled = false;
 
-}
-
-void QuME_Frame::OnSpinTextureExamineChange(wxSpinEvent& event)
-{
-    wxUint32 i = spinTextureExamine->GetValue();
-    if(i >= this->bsp->Textures.Count)
-    {
-        spinTextureExamine->SetValue(0);
-        i = 0;
-    }
-    QuME_BSP_Texture* t = &bsp->Textures.Texture[i];
-    if(t != nullptr)
-    {
-        infoConsole->AppendText(L"*-----------------------------*\n");
-        infoConsole->AppendText(L"Texture Name: " + t->MaterialName + L"\n");
-        infoConsole->AppendText(L"Resolution: X = " + std::to_wstring(t->xRes));
-        infoConsole->AppendText(L" Y = " + std::to_wstring(t->yRes) + L"\n\n");
-    }
-}
-
-//this sets all UI objects to disabled if progress dialog exists, to simulate modal behavior across threads
-void QuME_Frame::OnUpdateBSPProcessing(wxUpdateUIEvent& event)
-{
-    //event.Enable( BSPProcessingProgressDialog == nullptr );
-}
-
-void QuME_Frame::OnUpdateObjExport(wxUpdateUIEvent& event)
-{
-    //event.Enable( ExportProgressDialog == nullptr );
-}
-
-//timer based GLCanvas refresh + other things
-void QuME_Frame::UpdateGLWindow(wxTimerEvent& event)
-{
-    if(glContext->SetCurrent(*mainGLCanvas))
-    {
-        glEnable(GL_DEPTH_TEST); /* enable depth buffering */
-        glDepthFunc(GL_LESS);    /* pedantic, GL_LESS is the default */
-        glClearDepth(1.0);       /* pedantic, 1.0 is the default */
-        /* frame buffer clears should be to black */
-        glClearColor(0.0, 0.0, 0.0, 0.0);
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glFrustum(-1.0, 1.0, -1.0, 1.0, 1.0, 10000.0);
-
-        glMatrixMode(GL_MODELVIEW);
-
-        /* reset modelview matrix to the identity matrix */
-        glLoadIdentity();
-
-        /* move the camera back */
-        glTranslatef(0.0, 0.0, -400.0);
-
-        xRot = SliderXRotation->GetValue();
-        yRot = SliderYRotation->GetValue();
-        zRot = SliderZRotation->GetValue();
-
-        /* rotate by X, Y, and Z angles */
-        glRotatef(xRot, 0.1, 0.0, 0.0);
-        glRotatef(yRot, 0.0, 0.1, 0.0);
-        glRotatef(zRot, 0.0, 0.0, 1.0);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        if(menuExport->IsEnabled())
-        {
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.5, 1.0, 1.0);
-            for(wxUint32 i = 0; i < bsp->BrushModels.Count; i++)
-            {
-
-            }
-            glEnd();
-
-        }
-
-        mainGLCanvas->SwapBuffers();
-
-    }
+    thread->Run();
 }
 
 //respond to progress messages from the .obj export thread
@@ -679,6 +587,191 @@ void QuME_Frame::OnObjExportEvent(wxThreadEvent& event)
 	}
 }
 
+void QuME_Frame::OnBrushExportEvent(wxThreadEvent& event)
+{
+    if(this->ExportProgressDialog == nullptr)
+    {
+        ExportProgressDialog = new wxProgressDialog(L"Exporting Brush data ...",
+                L"",
+                100,
+                this,
+                0);
+    }
+
+    int n = event.GetInt();
+    if ( n == -1 ) //done exporting, close progress dialog
+    {
+        ExportProgressDialog->Close();
+        ExportProgressDialog = nullptr;
+
+        wxWakeUpIdle();
+    }
+    else if(n == -2) //error, close progress dialog and report
+    {
+        ExportProgressDialog->Close();
+        ExportProgressDialog = nullptr;
+
+
+        wxMessageBox(L"Error exporting brushes!", L"Export Error!", 0, this);
+
+        wxWakeUpIdle();
+    }
+    else
+    {
+		if (!ExportProgressDialog->Update(n))
+		{
+			wxCriticalSectionLocker lock(CritSecExportCanceled);
+
+			exportCanceled = true;
+		}
+
+	}
+}
+
+void QuME_Frame::OnSpinFaceExamineChange(wxSpinEvent& event)
+{
+    wxUint32 i = spinFaceExamine->GetValue();
+    if(i >= bsp->Faces.Count)
+    {
+        spinFaceExamine->SetValue(0);
+        i = 0;
+    }
+    QuME_BSP_Face* f = &bsp->Faces.Face[i];
+    QuME_BSP_Texture* t = &bsp->Textures.Texture[f->TextureInfo];
+    wxInt32* SEdge = bsp->SurfaceEdges.SurfaceEdge;
+    QuME_BSP_Edge* BSPEdges = bsp->Edges.EdgeArray;
+    if(f != nullptr)
+    {
+        infoConsole->AppendText(L"*-----------------------------*\n");
+        infoConsole->AppendText(L"Face #" + std::to_wstring(i) + L"\n");
+        infoConsole->AppendText(L"Plane #" + std::to_wstring(f->Plane) + L"\n");
+        infoConsole->AppendText(L"Plane side: " + std::to_wstring(f->PlaneSide) + L"\n");
+        infoConsole->AppendText(L"Edge count: " + std::to_wstring(f->EdgeCount) + L"\n");
+        infoConsole->AppendText(L"First edge index: " + std::to_wstring(f->FirstEdge) + L"\n");
+        for(wxInt32 j = 0; j < f->EdgeCount; j++)
+        {
+            wxUint32 firstEdge = f->FirstEdge;
+            QuME_BSP_Edge* vertindexes = &BSPEdges[SEdge[firstEdge + j]];
+            infoConsole->AppendText(std::to_wstring(vertindexes->a) + L" " + std::to_wstring(vertindexes->b) + L"\n");
+        }
+        for(wxUint32 j = 0; j < f->TriangleCount; j++)
+        {
+            infoConsole->AppendText(L"Triangle " + std::to_wstring(j) + L"\n");
+            for(wxInt32 k = 0; k < 3; k++)
+            {
+                infoConsole->AppendText(std::to_wstring(f->Triangle[j].v[k]) + L" ");
+            }
+            infoConsole->AppendText(L"\n");
+        }
+        infoConsole->AppendText(L"Texture Name: " + t->MaterialName + L"\n\n");
+    }
+}
+
+void QuME_Frame::OnSpinEntityExamineChange(wxSpinEvent& event)
+{
+    wxUint32 i = spinEntityToExamine->GetValue();
+    if(i >= bsp->Entities.EntityCount)
+    {
+        spinEntityToExamine->SetValue(0);
+        i = 0;
+    }
+
+    infoConsole->AppendText(L"*-----------------------------*\n");
+    infoConsole->AppendText(L"Entity #" + std::to_wstring(i) + L"\n");
+    for(wxUint32 j = 0; j < bsp->Entities.EntityArray[i].KeyCount; j++)
+    {
+        infoConsole->AppendText(L"\"" + bsp->Entities.EntityArray[i].KeyArray[j].KeyName);
+        infoConsole->AppendText(L"\" \"" + bsp->Entities.EntityArray[i].KeyArray[j].KeyValue + L"\"\n");
+    }
+    infoConsole->AppendText(L"\n");
+
+}
+
+void QuME_Frame::OnSpinTextureExamineChange(wxSpinEvent& event)
+{
+    wxUint32 i = spinTextureExamine->GetValue();
+    if(i >= this->bsp->Textures.Count)
+    {
+        spinTextureExamine->SetValue(0);
+        i = 0;
+    }
+    QuME_BSP_Texture* t = &bsp->Textures.Texture[i];
+    if(t != nullptr)
+    {
+        infoConsole->AppendText(L"*-----------------------------*\n");
+        infoConsole->AppendText(L"Texture Name: " + t->MaterialName + L"\n");
+        infoConsole->AppendText(L"Resolution: X = " + std::to_wstring(t->xRes));
+        infoConsole->AppendText(L" Y = " + std::to_wstring(t->yRes) + L"\n\n");
+    }
+}
+
+//this sets all UI objects to disabled if progress dialog exists, to simulate modal behavior across threads
+void QuME_Frame::OnUpdateBSPProcessing(wxUpdateUIEvent& event)
+{
+    //event.Enable( BSPProcessingProgressDialog == nullptr );
+}
+
+void QuME_Frame::OnUpdateObjExport(wxUpdateUIEvent& event)
+{
+    //event.Enable( ExportProgressDialog == nullptr );
+}
+
+void QuME_Frame::OnUpdateBrushExport(wxUpdateUIEvent& event)
+{
+    //event.Enable( ExportProgressDialog == nullptr );
+}
+
+//timer based GLCanvas refresh + other things
+void QuME_Frame::UpdateGLWindow(wxTimerEvent& event)
+{
+    if(glContext->SetCurrent(*mainGLCanvas))
+    {
+        glEnable(GL_DEPTH_TEST); /* enable depth buffering */
+        glDepthFunc(GL_LESS);    /* pedantic, GL_LESS is the default */
+        glClearDepth(1.0);       /* pedantic, 1.0 is the default */
+        /* frame buffer clears should be to black */
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glFrustum(-1.0, 1.0, -1.0, 1.0, 1.0, 10000.0);
+
+        glMatrixMode(GL_MODELVIEW);
+
+        /* reset modelview matrix to the identity matrix */
+        glLoadIdentity();
+
+        /* move the camera back */
+        glTranslatef(0.0, 0.0, -400.0);
+
+        xRot = SliderXRotation->GetValue();
+        yRot = SliderYRotation->GetValue();
+        zRot = SliderZRotation->GetValue();
+
+        /* rotate by X, Y, and Z angles */
+        glRotatef(xRot, 0.1, 0.0, 0.0);
+        glRotatef(yRot, 0.0, 0.1, 0.0);
+        glRotatef(zRot, 0.0, 0.0, 1.0);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if(menuExport->IsEnabled())
+        {
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.5, 1.0, 1.0);
+            //for(wxUint32 i = 0; i < bsp->BrushModels.Count; i++)
+            {
+
+            }
+            glEnd();
+
+        }
+
+        mainGLCanvas->SwapBuffers();
+
+    }
+}
+
 void QuME_Frame::OnBSPProcessingEvent(wxThreadEvent& event)
 {
     if(this->BSPProcessingProgressDialog == nullptr)
@@ -717,7 +810,7 @@ void QuME_Frame::OnBSPImportEvent(wxThreadEvent& event)
         spinFaceExamine->Enable();
         spinFaceExamine->SetRange(0, this->bsp->Faces.Count);
         spinEntityToExamine->Enable();
-        spinEntityToExamine->SetRange(0, this->bsp->Entities.Count);
+        spinEntityToExamine->SetRange(0, this->bsp->Entities.EntityCount);
         spinTextureExamine->Enable();
         spinTextureExamine->SetRange(0, this->bsp->Textures.Count);
     }

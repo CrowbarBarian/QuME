@@ -58,12 +58,11 @@ bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
         binData->Read8(c, TEXTURE_NAME_SIZE);
         c[TEXTURE_NAME_SIZE - 1] = 0; //just in case...
 
-        copys2ws(c, &t->MaterialName); //convert ASCII name to wstring object
+        copys2ws(c, t->MaterialName); //convert ASCII name to wstring object
 
         //fix the problem of random upper/lower case in the file names
         //this is a result of the DOS/Windows file-system case-insensitivity
         std::transform(t->MaterialName.begin(), t->MaterialName.end(), t->MaterialName.begin(), ::tolower);
-        //t->MaterialName.towlower();
         t->NextTexInfo = binData->Read32();
 
         //open .wal file to get necessary info on width and height
@@ -81,11 +80,8 @@ bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
         walData->Read8(c, TEXTURE_NAME_SIZE);
         c[TEXTURE_NAME_SIZE - 1] = 0; //just in case...
         std::wstring walName;
-        copys2ws(c, &walName);
+        copys2ws(c, walName);
         std::transform(walName.begin(), walName.end(), walName.begin(), ::tolower);
-
-
-        //walName.LowerCase();
 
         t->xRes = walData->Read32();
         t->yRes = walData->Read32();

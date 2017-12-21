@@ -12,7 +12,7 @@ public:
         next = nullptr;
         prev = nullptr;
     }
-    explicit ListItem(const T& Item):Item(Item)
+    explicit ListItem(const T& inData):Data(inData)
     {
         next = nullptr;
         prev = nullptr;
@@ -20,17 +20,17 @@ public:
 
     ListItem* next;
     ListItem* prev;
-    T Item;
+    T Data;
 };
 
 template <class T>
-class LinkedList
+class QuME_LinkedList
 {
 public:
     typedef ListItem<T> list_type;
     typedef list_type* list_pointer;
 
-    LinkedList()
+    QuME_LinkedList()
     {
         Head = nullptr;
         Tail = nullptr;
@@ -38,23 +38,26 @@ public:
         NextIndex = 0;
     }
 
-    ~LinkedList()
+    ~QuME_LinkedList()
     {
         while(Head != nullptr)
         {
             ListItem<T>* t = Head->next;
-            delete Head;
+            SAFE_DELETE(Head);
             Head = t;
             Count--;
         }
+        Tail = nullptr;
     }
 
-    wxUint32 Append(T& Item);
-    wxUint32 Append(LinkedList<T>& List);
+    wxUint32 Append(const T& Item);
+    //wxUint32 Append(T Item);
+    wxUint32 Append(const QuME_LinkedList<T>& List);
 
     bool AddIfUnique(const T& Item);
-    T* ToArray(wxUint32& OutCount);
+    //T* ToArray(wxUint32& OutCount);
     wxUint32 ToArray(T*& OutArray);
+    wxUint32 ToArray(T OutArray);
     ListItem<T>* Remove(T& Item);
 
     ListItem<T>* Head;
@@ -64,7 +67,7 @@ public:
 };
 
 template <class T>
-wxUint32 LinkedList<T>::Append(T& Item)
+wxUint32 QuME_LinkedList<T>::Append(const T& Item)
 {
     if(Head == nullptr)
     {
@@ -82,19 +85,19 @@ wxUint32 LinkedList<T>::Append(T& Item)
 }
 
 template <class T>
-wxUint32 LinkedList<T>::Append(LinkedList<T>& List)
+wxUint32 QuME_LinkedList<T>::Append(const QuME_LinkedList<T>& List)
 {
     wxUint32 nindex;
     for(ListItem<T>* i = List.Head; i != nullptr; i = i->next)
     {
         //make copy of payload
-        nindex = this->Append(i->Item);
+        nindex = this->Append(i->Data);
     }
     return nindex; //<-- does this work??
 }
 
 template <class T>
-bool LinkedList<T>::AddIfUnique(const T& Item)
+bool QuME_LinkedList<T>::AddIfUnique(const T& Item)
 {
     if(Head == nullptr)
     {
@@ -106,7 +109,7 @@ bool LinkedList<T>::AddIfUnique(const T& Item)
 
     for(ListItem<T>* l = Head; l != nullptr; l = l->next)
     {
-        if(l->Item == Item) return false;
+        if(l->Data == Item) return false;
     }
 
     Tail->next = new ListItem<T>(Item);
@@ -117,13 +120,13 @@ bool LinkedList<T>::AddIfUnique(const T& Item)
 }
 
 template <class T>
-ListItem<T>* LinkedList<T>::Remove(T& Item)
+ListItem<T>* QuME_LinkedList<T>::Remove(T& Item)
 {
     ListItem<T>* t = Head;
 
     while(t != nullptr)
     {
-        if(t->Item == Item)
+        if(t->Data == Item)
         {
             if(t->prev == nullptr) //head of list(or only list item)
             {
@@ -158,26 +161,42 @@ ListItem<T>* LinkedList<T>::Remove(T& Item)
     return nullptr; //not found
 }
 
+#if 0
 template <class T>
-T* LinkedList<T>::ToArray(wxUint32& OutCount)
+T* QuME_LinkedList<T>::ToArray(wxUint32& OutCount)
 {
     OutCount = 0;
     T* t = new T[Count];
     for(ListItem<T>* l = Head; l != nullptr; l = l->next)
     {
-        t[OutCount++] = l->Item;
+        t[OutCount++] = l->Data;
+    }
+    return t;
+}
+#endif // 0
+
+template <class T>
+wxUint32 QuME_LinkedList<T>::ToArray(T*& OutArray)
+{
+    wxUint32 t = 0;
+    SAFE_ARRAY_DELETE(OutArray);
+    OutArray = new T[Count];
+    for(ListItem<T>* l = Head; l != nullptr; l = l->next)
+    {
+        OutArray[t++] = l->Data;
     }
     return t;
 }
 
 template <class T>
-wxUint32 LinkedList<T>::ToArray(T*& OutArray)
+wxUint32 QuME_LinkedList<T>::ToArray(T OutArray)
 {
     wxUint32 t = 0;
+    SAFE_ARRAY_DELETE(OutArray);
     OutArray = new T[Count];
     for(ListItem<T>* l = Head; l != nullptr; l = l->next)
     {
-        OutArray[t++] = l->Item;
+        OutArray[t++] = l->Data;
     }
     return t;
 }

@@ -1,9 +1,9 @@
 #include "QuME_BSP_Brushes.h"
 
-bool QuME_BSP_BrushSides::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length)
+bool QuME_BSP_BrushSides::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength)
 {
     //Count = length / 4;
-    BrushSideArray.Count = length / 4;
+    this->BrushSideArray.Count = lumpLength / Q2_BSP_BRUSH_SIDE_DATA_SIZE;
 
     wxDataInputStream* binData = new wxDataInputStream( *infile );
 
@@ -20,8 +20,8 @@ bool QuME_BSP_BrushSides::LoadLump(wxFileInputStream* infile, wxUint32 offset, w
     }
 
     //BrushSide = new QuME_BSP_BrushSide[Count];
-    BrushSideArray.Item = new QuME_BSP_BrushSide[BrushSideArray.Count];
-    if(BrushSideArray.Item == nullptr)
+    this->BrushSideArray.Data = new QuME_BSP_BrushSide[BrushSideArray.Count];
+    if(this->BrushSideArray.Data == nullptr)
     {
         delete binData;
         return false;
@@ -29,8 +29,8 @@ bool QuME_BSP_BrushSides::LoadLump(wxFileInputStream* infile, wxUint32 offset, w
 
     for(wxUint32 i = 0; i < BrushSideArray.Count; i++)
     {
-        BrushSideArray.Item[i].PlaneIndex = binData->Read16();
-        BrushSideArray.Item[i].TextureIndex = binData->Read16();
+        this->BrushSideArray.Data[i].PlaneIndex = binData->Read16();
+        this->BrushSideArray.Data[i].TextureIndex = static_cast<wxInt16>(binData->Read16());
     }
 
     /*
@@ -51,9 +51,9 @@ bool QuME_BSP_BrushSides::LoadLump(wxFileInputStream* infile, wxUint32 offset, w
     return true;
 }
 
-bool QuME_BSP_Brushes::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length)
+bool QuME_BSP_Brushes::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength)
 {
-    Count = length / 12;
+    this->Count = lumpLength / Q2_BSP_BRUSH_DATA_SIZE;
 
     wxDataInputStream* binData = new wxDataInputStream( *infile );
 
@@ -69,8 +69,8 @@ bool QuME_BSP_Brushes::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUi
         return false;
     }
 
-    Brush = new QuME_BSP_Brush[Count];
-    if(Brush == nullptr)
+    this->Brush = new QuME_BSP_Brush[Count];
+    if(this->Brush == nullptr)
     {
         delete binData;
         return false;
@@ -78,9 +78,9 @@ bool QuME_BSP_Brushes::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUi
 
     for(wxUint32 i = 0; i < Count; i++)
     {
-        Brush[i].FirstBrushSide = binData->Read32();
-        Brush[i].SideCount = binData->Read32();
-        Brush[i].Content = binData->Read32();
+        this->Brush[i].FirstBrushSide = binData->Read32();
+        this->Brush[i].SideCount = binData->Read32();
+        this->Brush[i].Content = binData->Read32();
     }
 
     if(!binData->IsOk())

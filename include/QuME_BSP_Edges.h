@@ -4,7 +4,7 @@
 #include "QuME_Common.h"
 #include "QuME_Lists.h"
 
-#define EDGE_SIZE_ON_DISK 4
+#define Q2_BSP_EDGE_DATA_SIZE 4
 
 class QuME_BSP_Edge
 {
@@ -23,7 +23,7 @@ public:
 
     wxUint32 Count;
     QuME_BSP_Edge* EdgeArray;
-    LinkedList<QuME_BSP_Edge> EdgeList;
+    QuME_LinkedList<QuME_BSP_Edge> EdgeList;
 };
 
 #endif // QuME_BSP_EDGES_H

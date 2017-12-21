@@ -4,36 +4,35 @@
 #include "QuME_Common.h"
 #include "QuME_BSP_Planes.h"
 #include "QuME_Vector.h"
+#include "QuME_Bounds.h"
+#include "QuME_BSP_Vertices.h"
 #include "QuME_BSP_Edges.h"
 #include "QuME_Lists.h"
 #include "QuME_Arrays.h"
 
 //class QuME_BSP_Data;
 
+#define Q2_BSP_BRUSH_SIDE_DATA_SIZE 4
+#define Q2_BSP_BRUSH_DATA_SIZE 12
+
 class BrushEdge
 {
 public:
     BrushEdge()
     {
-        IndexArray[0] = 0;
-        IndexArray[1] = 0;
+        this->a = 0;
+        this->b = 0;
         NextBrushEdgeIndex = 0;
     }
-    BrushEdge(wxUint32 a, wxUint32 b)
+    BrushEdge(wxUint32 ina, wxUint32 inb)
     {
-        IndexArray[0] = a;
-        IndexArray[1] = b;
+        this->a = ina;
+        this->b = inb;
         NextBrushEdgeIndex = 0;
     }
-    union
-    {
-        struct
-        {
-            wxUint32 a;
-            wxUint32 b;
-        };
-        wxUint32 IndexArray[2]; //the two points that make up this edge
-    };
+
+	wxUint32 a;
+	wxUint32 b;
     wxUint32 NextBrushEdgeIndex;
 };
 
@@ -44,30 +43,33 @@ public:
     {
         VertexIndexArrayCount = 0;
         VertexIndexArray = nullptr;
-        //Edge = nullptr;
         BrushEdgeArray = nullptr;
-
+        UVIndexArrayCount = 0;
+        UVIndexArray = nullptr;
     }
 
     ~QuME_BSP_BrushSide()
     {
         VertexIndexArrayCount = 0;
         SAFE_ARRAY_DELETE(VertexIndexArray);
+        UVIndexArrayCount = 0;
+        SAFE_ARRAY_DELETE(UVIndexArray);
     }
 
-    wxUint16 PlaneIndex;
-    wxInt16 TextureIndex;
+    wxUint32 PlaneIndex;
+    wxInt32 TextureIndex;
 
     QuME_Vector Normal;
 
-    //QuME_BSP_Edge* Edge;
-
-
-    LinkedList<wxUint32> VertexIndexList;
+    QuME_LinkedList<wxUint32> VertexIndexList;
     wxUint32* VertexIndexArray;
     wxUint32 VertexIndexArrayCount;
 
-    LinkedList<BrushEdge> BrushEdgeList;
+    QuME_LinkedList<wxUint32> UVIndices;
+    wxUint32* UVIndexArray;
+    wxUint32 UVIndexArrayCount;
+
+    QuME_LinkedList<BrushEdge> BrushEdgeList;
     BrushEdge* BrushEdgeArray;
     wxUint32 BrushEdgeArrayCount;
 };
@@ -75,7 +77,7 @@ public:
 class QuME_BSP_BrushSides
 {
 public:
-    QuME_BSP_BrushSides()
+    QuME_BSP_BrushSides():BrushSideArray()
     {
         Count = 0;
         BrushSide = nullptr;
@@ -86,7 +88,7 @@ public:
         SAFE_ARRAY_DELETE(BrushSide);
     }
 
-    bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length);
+    bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength);
 
     wxUint32 Count;
     QuME_BSP_BrushSide* BrushSide;
@@ -96,19 +98,24 @@ public:
 class QuME_BSP_Brush
 {
 public:
-    QuME_BSP_Brush()
+    QuME_BSP_Brush():VertexIndices()
     {
+    	this->FirstBrushSide = 0;
+    	this->SideCount = 0;
+    	this->Content = 0;
     }
 
     ~QuME_BSP_Brush()
     {
     }
 
+    QuME_Bounds Bounds;
+
     wxUint32 FirstBrushSide;
     wxUint32 SideCount;
     wxUint32 Content;
 
-    LinkedList<wxUint32> Indices;
+    QuME_LinkedList<wxUint32> VertexIndices;
 };
 
 class QuME_BSP_Brushes
@@ -126,7 +133,7 @@ public:
         SAFE_ARRAY_DELETE(Brush);
     }
 
-    bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length);
+    bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength);
 
     wxUint32 Count;
     QuME_BSP_Brush* Brush;

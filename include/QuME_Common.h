@@ -1,9 +1,9 @@
 #ifndef QUME_COMMON_H_INCLUDED
 #define QUME_COMMON_H_INCLUDED
 
-#define QUME_VERSION L"0.2"
+#define QUME_VERSION L"0.2.1"
 #define QUME_EPSILON 0.015625
-#define QUME_VERTEX_WELD_FACTOR 0.00001 //need to experiment with this factor a little
+#define QUME_VERTEX_WELD_FACTOR 1.0 //need to experiment with this factor a little
 #define QUME_EXPORTSCALEFACTOR 0.015625
 #define QUME_GRIDSNAP 1.0 //remove any slop from vertices
 #define QUME_EXPORTGRIDSNAP false //do we snap to grid on export?

@@ -41,25 +41,44 @@ class QuME_BSP_BrushSide
 public:
     QuME_BSP_BrushSide()
     {
+    	VertexArrayCount = 0;
+    	VertexArray = nullptr;
         VertexIndexArrayCount = 0;
         VertexIndexArray = nullptr;
+        BrushEdgeArrayCount = 0;
         BrushEdgeArray = nullptr;
         UVIndexArrayCount = 0;
         UVIndexArray = nullptr;
-    }
+        PlaneVertexArrayCount = 0;
+        PlaneVertexArray = nullptr;
+	}
 
     ~QuME_BSP_BrushSide()
     {
+    	VertexArrayCount = 0;
+    	SAFE_ARRAY_DELETE(VertexArray);
         VertexIndexArrayCount = 0;
         SAFE_ARRAY_DELETE(VertexIndexArray);
         UVIndexArrayCount = 0;
         SAFE_ARRAY_DELETE(UVIndexArray);
+        BrushEdgeArrayCount = 0;
+        SAFE_ARRAY_DELETE(BrushEdgeArray);
+        PlaneVertexArrayCount = 0;
+        SAFE_ARRAY_DELETE(PlaneVertexArray);
     }
 
     wxUint32 PlaneIndex;
     wxInt32 TextureIndex;
 
     QuME_Vector Normal;
+
+    QuME_LinkedList<QuME_Vector> PlaneVertexList;
+    QuME_Vector* PlaneVertexArray;
+    wxUint32 PlaneVertexArrayCount;
+
+    QuME_LinkedList<wxUint32> VertexList;
+    wxUint32* VertexArray;
+    wxUint32 VertexArrayCount;
 
     QuME_LinkedList<wxUint32> VertexIndexList;
     wxUint32* VertexIndexArray;
@@ -103,10 +122,14 @@ public:
     	this->FirstBrushSide = 0;
     	this->SideCount = 0;
     	this->Content = 0;
+    	this->VertexArrayCount = 0;
+    	this->VertexArray = nullptr;
     }
 
     ~QuME_BSP_Brush()
     {
+    	this->VertexArrayCount = 0;
+    	SAFE_ARRAY_DELETE(this->VertexArray);
     }
 
     QuME_Bounds Bounds;
@@ -114,6 +137,10 @@ public:
     wxUint32 FirstBrushSide;
     wxUint32 SideCount;
     wxUint32 Content;
+
+    QuME_LinkedList<QuME_Vector> VertexList;
+    wxUint32 VertexArrayCount;
+    QuME_Vector* VertexArray;
 
     QuME_LinkedList<wxUint32> VertexIndices;
 };

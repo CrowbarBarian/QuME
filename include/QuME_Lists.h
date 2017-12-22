@@ -54,7 +54,7 @@ public:
     //wxUint32 Append(T Item);
     wxUint32 Append(const QuME_LinkedList<T>& List);
 
-    bool AddIfUnique(const T& Item);
+    wxUint32 AddIfUnique(const T& Item);
     //T* ToArray(wxUint32& OutCount);
     wxUint32 ToArray(T*& OutArray);
     wxUint32 ToArray(T OutArray);
@@ -97,26 +97,28 @@ wxUint32 QuME_LinkedList<T>::Append(const QuME_LinkedList<T>& List)
 }
 
 template <class T>
-bool QuME_LinkedList<T>::AddIfUnique(const T& Item)
+wxUint32 QuME_LinkedList<T>::AddIfUnique(const T& Item)
 {
     if(Head == nullptr)
     {
         Head = new ListItem<T>(Item);
         Tail = Head;
         Count++;
-        return true;
+        return NextIndex++;
     }
 
+    wxUint32 i = 0;
     for(ListItem<T>* l = Head; l != nullptr; l = l->next)
     {
-        if(l->Data == Item) return false;
+        if(l->Data == Item) return i;
+        i++;
     }
 
     Tail->next = new ListItem<T>(Item);
     Tail->next->prev = Tail;
     Tail = Tail->next;
     Count++;
-    return true;
+    return NextIndex++;
 }
 
 template <class T>

@@ -8,6 +8,7 @@ class QuME_Plane
 {
 public:
 	QuME_Plane();
+	QuME_Plane(wxFloat64 a, wxFloat64 b, wxFloat64 c, wxFloat64 d);
 	~QuME_Plane();
     //intersect this plane with two others to find a point. Returns false if no valid intersection found.
     bool Intersect(const QuME_Plane& other1, const QuME_Plane& other2, QuME_Vector& v);

@@ -72,6 +72,7 @@
 		<Unit filename="include/QuME_BSP_TextureUVs.h" />
 		<Unit filename="include/QuME_BSP_Textures.h" />
 		<Unit filename="include/QuME_BSP_Vertices.h" />
+		<Unit filename="include/QuME_Bounds.h" />
 		<Unit filename="include/QuME_Common.h" />
 		<Unit filename="include/QuME_Line.h" />
 		<Unit filename="include/QuME_Lists.h" />
@@ -97,13 +98,13 @@
 		<Unit filename="src/QuME_BSP_TextureUVs.cpp" />
 		<Unit filename="src/QuME_BSP_Textures.cpp" />
 		<Unit filename="src/QuME_BSP_Vertices.cpp" />
+		<Unit filename="src/QuME_Bounds.cpp" />
 		<Unit filename="src/QuME_Common.cpp" />
 		<Unit filename="src/QuME_Line.cpp" />
 		<Unit filename="src/QuME_Main.cpp" />
 		<Unit filename="src/QuME_Plane.cpp" />
 		<Unit filename="src/QuME_UniqueStrings.cpp" />
 		<Unit filename="src/QuME_Vector.cpp" />
-		<Unit filename="wxsmith/FaceDialog.wxs" />
 		<Unit filename="wxsmith/QuME_Frame.wxs" />
 		<Extensions>
 			<envvars />

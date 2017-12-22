@@ -134,7 +134,9 @@ public:
     wxUint32 GetLumpTableOffset(wxUint32 version);
     void DebugDump(wxTextOutputStream& out);
 
-    QuME_LinkedList<wxUint32>* QuickHull2D(wxUint32 Start, wxUint32 End, QuME_LinkedList<wxUint32>* Right, QuME_Vector& Normal);
+    QuME_LinkedList<QuME_Vector>* QuickHullVec(QuME_Vector Start, QuME_Vector End, QuME_LinkedList<QuME_Vector>* Right, QuME_Vector& Normal);
+
+    QuME_LinkedList<wxUint32>* QuickHull2D(wxUint32 Start, wxUint32 End, QuME_LinkedList<wxUint32>* Right, QuME_Vector& Normal, wxUint32 BrushID);
 
     std::wstring baseDir; //used to track down resources
     std::wstring MapName; //the name of this map from load
@@ -160,8 +162,6 @@ public:
     QuME_Bounds BrushBoundingBox;
     QuME_Vector Level_BBox_Min;
     QuME_Vector Level_BBox_Max;
-
-
 };
 
 #endif // QuME_BSP_Data_H_INCLUDED

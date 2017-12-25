@@ -77,6 +77,7 @@
 		<Unit filename="include/QuME_Line.h" />
 		<Unit filename="include/QuME_Lists.h" />
 		<Unit filename="include/QuME_Main.h" />
+		<Unit filename="include/QuME_PAK_File.h" />
 		<Unit filename="include/QuME_Plane.h" />
 		<Unit filename="include/QuME_UniqueStrings.h" />
 		<Unit filename="include/QuME_Vector.h" />
@@ -102,6 +103,7 @@
 		<Unit filename="src/QuME_Common.cpp" />
 		<Unit filename="src/QuME_Line.cpp" />
 		<Unit filename="src/QuME_Main.cpp" />
+		<Unit filename="src/QuME_PAK_File.cpp" />
 		<Unit filename="src/QuME_Plane.cpp" />
 		<Unit filename="src/QuME_UniqueStrings.cpp" />
 		<Unit filename="src/QuME_Vector.cpp" />
@@ -117,7 +119,6 @@
 				<gui name="wxWidgets" src="src/QuME_App.cpp" main="-- None --" init_handlers="necessary" language="CPP" />
 				<resources>
 					<wxFrame wxs="wxsmith/QuME_Frame.wxs" src="src/QuME_Main.cpp" hdr="src/QuME_Main.h" fwddecl="0" i18n="1" name="QuME_Frame" language="CPP" />
-					<wxDialog wxs="wxsmith/FaceDialog.wxs" src="FaceDialog.cpp" hdr="FaceDialog.h" fwddecl="0" i18n="1" name="FaceDialog" language="CPP" />
 				</resources>
 			</wxsmith>
 			<debugger />

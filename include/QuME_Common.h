@@ -1,7 +1,6 @@
 #ifndef QUME_COMMON_H_INCLUDED
 #define QUME_COMMON_H_INCLUDED
 
-#define QUME_VERSION L"0.2.1"
 #define QUME_EPSILON 0.015625
 #define QUME_VERTEX_WELD_FACTOR 1.0 //need to experiment with this factor a little
 #define QUME_EXPORTSCALEFACTOR 0.015625
@@ -13,6 +12,7 @@
 #define QUME_HASHMASKRANGE 4096 //how many indices the hash will generate max
 
 //often used header files
+#include <stdexcept>
 #include <cmath>
 #include <iostream>
 #include <string>

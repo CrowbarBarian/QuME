@@ -81,6 +81,8 @@ bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
         c[TEXTURE_NAME_SIZE - 1] = 0; //just in case...
         std::wstring walName;
         copys2ws(c, walName);
+
+        //fix random uppercase in names
         std::transform(walName.begin(), walName.end(), walName.begin(), ::tolower);
 
         t->xRes = walData->Read32();

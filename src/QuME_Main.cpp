@@ -64,6 +64,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     wxMenu* menuHelp = nullptr;
     wxMenuBar* menuBar = nullptr;
     wxGridBagSizer* mainGridBagSizer = nullptr;
+    this->ExportProgressDialog = nullptr;
     std::wstring title = L"QuME v";
     title += QUME_VERSION;
 
@@ -103,6 +104,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     infoConsole->SetFont(infoConsoleFont);
     mainGridBagSizer->Add(infoConsole, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL|wxALIGN_RIGHT|wxALIGN_TOP, 5);
 
+#if 0
     staticTextPreviewWindow = new wxStaticText(this,
 											ID_STATICTEXT_PREVIEWWINDOW,
 											L"Preview Window",
@@ -133,6 +135,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
                                0, _T("ID_MAINGLCANVAS"));
 */
     mainGridBagSizer->Add(mainGLCanvas, wxGBPosition(1, 2), wxGBSpan(1,2), wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
+#endif // 0
 
     //Face inspector GUI items
     staticTextFaceInspector = new wxStaticText(this,
@@ -149,7 +152,6 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     spinFaceExamine->Disable();
     spinFaceExamine->SetToolTip(L"Face to Examine");
     mainGridBagSizer->Add(spinFaceExamine, wxGBPosition(2, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-
 
     //entity inspector GUI items
     staticTextEntityInspector = new wxStaticText(this,
@@ -176,7 +178,6 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     spinEntityToExamine->SetToolTip(L"Entity to Examine");
     mainGridBagSizer->Add(spinEntityToExamine, wxGBPosition(3, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 
-
     //texture inspector GUI items
     staticTextTextureInspector = new wxStaticText(this,
 												ID_STATICTEXT_TEXTUREINSPECTOR,
@@ -202,6 +203,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     spinTextureExamine->SetToolTip(L"Texture to Examine");
     mainGridBagSizer->Add(spinTextureExamine, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 
+#if 0
     staticTextXRotation = new wxStaticText(this,
 										ID_STATICTEXT_XROTATION,
 										L"X Rotation",
@@ -270,6 +272,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     SliderZRotation->SetToolTip(L"Z Rotation");
     SliderZRotation->SetHelpText(L"Z Rotation");
     mainGridBagSizer->Add(SliderZRotation, wxGBPosition(4, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
+#endif // 0
 
     //menus
     menuBar = new wxMenuBar();
@@ -309,8 +312,8 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     SetSizer(mainGridBagSizer);
 
     //wxGLCanvas1 redraw timer
-    refreshTimer.SetOwner(this, ID_REFRESHTIMER);
-    refreshTimer.Start(100, false);
+    //refreshTimer.SetOwner(this, ID_REFRESHTIMER);
+    //refreshTimer.Start(100, false);
 
     //spin control event function handler bindings
     Connect(ID_SPIN_FACE_EXAMINE,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&QuME_Frame::OnSpinFaceExamineChange);
@@ -324,7 +327,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     Connect(ID_MENU_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&QuME_Frame::OnAbout);
 
     //timer event function handler binding
-    Connect(ID_REFRESHTIMER,wxEVT_TIMER,(wxObjectEventFunction)&QuME_Frame::UpdateGLWindow);
+    //Connect(ID_REFRESHTIMER,wxEVT_TIMER,(wxObjectEventFunction)&QuME_Frame::UpdateGLWindow);
 
     Connect(ID_MENU_OPEN, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&QuME_Frame::OnOpenBSP);
     Connect(ID_MENU_OPEN, wxEVT_UPDATE_UI, (wxObjectEventFunction)&QuME_Frame::OnUpdateBSPProcessing);
@@ -337,7 +340,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
 
     Connect(ID_MENU_BASEDIR, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&QuME_Frame::OnSetBasedir);
 
-    glContext = new wxGLContext(mainGLCanvas);
+    //glContext = new wxGLContext(mainGLCanvas);
 
     //read in our configuration info
     this->configuration = new wxFileConfig(L"QuME", L"", wxFileName::GetCwd() + L"/QuME.cfg", L"", wxCONFIG_USE_LOCAL_FILE);
@@ -345,6 +348,44 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     {
         this->gameDir = this->configuration->Read(L"GameBaseDir", "");
         infoConsole->AppendText(L"Game directory is: \'" + this->gameDir + L"\'\n\n");
+
+		wxDir gDir(this->gameDir);
+
+		if(gDir.HasFiles(L"*.pak"))
+		{
+			//find all the pak files, and add to pak list
+			for(wxUint64 i = 0; i < MAX_PAKS; i++)
+			{
+				std::wstring pakname = this->gameDir + L"pak" + std::to_wstring(i) + L".pak";
+				if(wxFile::Exists(pakname))
+				{
+					QuME_PAK_File f(pakname);
+					this->pakFiles.Add(f);
+				}
+			}
+			wxString pakname;
+			bool cont = gDir.GetFirst(&pakname, L"*.pak", wxDIR_FILES);
+			while(cont)
+			{
+				std::wstring pn = this->gameDir + pakname.ToStdWstring();
+				QuME_PAK_File f;
+				f.pakFileName = pn;
+				f.LoadPAKFileInfo();
+				this->pakFiles.AddIfUnique(f);
+				cont = gDir.GetNext(&pakname);
+			}
+
+			for(ListItem<QuME_PAK_File>* pf = this->pakFiles.Head; pf !=nullptr; pf = pf->next)
+			{
+				infoConsole->AppendText(pf->Data.pakFileName);
+				infoConsole->AppendText("\n");
+				pf->Data.dirEntryArrayCount = pf->Data.dirEntries.ToArray(pf->Data.dirEntryArray);
+			}
+		}
+		else
+		{
+			infoConsole->AppendText(L"Directory has no pak files!\nTry another one!\n");
+		}
     }
     else
     {
@@ -352,7 +393,6 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     }
     this->bsp = nullptr;
     this->BSPProcessingProgressDialog = nullptr;
-
 
     //FaceExaminerDialog = nullptr;
 }
@@ -370,7 +410,9 @@ QuME_Frame::~QuME_Frame()
 
         if (count == 0)
         {
-            delete bsp;
+            SAFE_DELETE(this->bsp);
+			SAFE_DELETE(this->configuration);
+			//SAFE_DELETE(this->glContext);
             return;
         }
 
@@ -381,7 +423,7 @@ QuME_Frame::~QuME_Frame()
     //Wait until all threads have exited before deleting BSP Data
     SAFE_DELETE(this->bsp);
     SAFE_DELETE(this->configuration);
-    SAFE_DELETE(this->glContext);
+    //SAFE_DELETE(this->glContext);
 }
 
 bool QuME_Frame::ObjExportCanceled()

@@ -102,91 +102,6 @@
 				<border>5</border>
 				<option>1</option>
 			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT_PREVIEWWINDOW" variable="StaticText5" member="yes">
-					<label>Preview Window</label>
-				</object>
-				<col>3</col>
-				<row>0</row>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT_XROTATION" variable="StaticText6" member="yes">
-					<label>X Rotation</label>
-				</object>
-				<col>2</col>
-				<row>2</row>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER1" variable="Slider1" member="yes">
-					<min>-180</min>
-					<max>180</max>
-					<size>180,20</size>
-					<tooltip>X Rotation</tooltip>
-					<help>X Rotation</help>
-					<handler function="OnSlider1CmdScroll" entry="EVT_COMMAND_SCROLL" />
-				</object>
-				<col>3</col>
-				<row>2</row>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT_YROTATION" variable="StaticText7" member="yes">
-					<label>Y Rotation</label>
-				</object>
-				<col>2</col>
-				<row>3</row>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxStaticText" name="ID_STATICTEXT_ZROTATION" variable="StaticText8" member="yes">
-					<label>Z Rotation</label>
-				</object>
-				<col>2</col>
-				<row>4</row>
-				<flag>wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER2" variable="Slider2" member="yes">
-					<min>-180</min>
-					<max>180</max>
-					<size>180,20</size>
-					<tooltip>Y Rotation</tooltip>
-					<help>Y Rotation</help>
-					<handler function="OnSlider2CmdScroll" entry="EVT_COMMAND_SCROLL" />
-				</object>
-				<col>3</col>
-				<row>3</row>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
-			<object class="sizeritem">
-				<object class="wxSlider" name="ID_SLIDER3" variable="Slider3" member="yes">
-					<min>-180</min>
-					<max>180</max>
-					<size>180,20</size>
-					<tooltip>Z Rotation</tooltip>
-					<help>Z Rotation</help>
-					<handler function="OnSlider3CmdScroll" entry="EVT_COMMAND_SCROLL" />
-				</object>
-				<col>3</col>
-				<row>4</row>
-				<flag>wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL</flag>
-				<border>5</border>
-				<option>1</option>
-			</object>
 		</object>
 		<object class="wxMenuBar" variable="MenuBar1" member="no">
 			<object class="wxMenu" variable="Menu1" member="no">
@@ -230,10 +145,6 @@
 			<widths>-1</widths>
 			<styles>wxSB_NORMAL</styles>
 			<style>wxRAISED_BORDER</style>
-		</object>
-		<object class="wxTimer" name="ID_REFRESHTIMER" variable="Timer1" member="yes">
-			<interval>100</interval>
-			<handler function="OnTimer1Trigger" entry="EVT_TIMER" />
 		</object>
 	</object>
 </wxsmith>

@@ -10,6 +10,8 @@
 #ifndef QUME_MAIN_H
 #define QUME_MAIN_H
 
+#define QUME_VERSION L"0.2.2"
+
 #include "QuME_Common.h"
 #include <wx/spinctrl.h>
 #include <wx/menu.h>
@@ -25,6 +27,7 @@
 #include <wx/glcanvas.h>
 #include <wx/progdlg.h>
 #include <wx/filename.h> //for wxFileName::GetCwd()
+#include <wx/dir.h>
 
 #include "QuME_App.h"
 wxDECLARE_APP(QuME_App);
@@ -33,6 +36,8 @@ wxDECLARE_APP(QuME_App);
 #include "QuME_BSP_Brush_Exporter.h"
 #include "QuME_BSP_Load.h"
 #include "QuME_BSP_Data.h"
+#include "QuME_Lists.h"
+#include "QuME_PAK_File.h"
 
 class QuME_Frame : public wxFrame
 {
@@ -42,11 +47,6 @@ class QuME_Frame : public wxFrame
         virtual ~QuME_Frame();
         bool ObjExportCanceled();
         bool BSPImportCanceled();
-
-//        wxCriticalSection* GetBSPProcessingCritSec() { return &CritSecBSP; }
-//        wxCriticalSection* GetImportCritSec() { return &CritSecImportCanceled; }
-//        wxCriticalSection* GetExportCritSec() { return &CritSecExportCanceled; }
-
 
         //our event handlers
         void OnQuit(wxCommandEvent& event);
@@ -159,6 +159,8 @@ class QuME_Frame : public wxFrame
 
         QuME_BSP_Data* bsp; //our main database
         wxCriticalSection CritSecBSP; //multi-thread protection for the BSP database
+
+        QuME_LinkedList<QuME_PAK_File> pakFiles;
 
         wxProgressDialog* BSPProcessingProgressDialog; //our file loading progress dialog
         bool importCanceled;

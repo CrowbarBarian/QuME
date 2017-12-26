@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_Common.cpp
+ * Purpose:		Code for common utility procedures
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_Common.h"
 
 void ReplaceAll(std::wstring *str, const std::wstring& from, const std::wstring& to)

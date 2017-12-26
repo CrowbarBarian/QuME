@@ -13,6 +13,7 @@ public:
 
     void UpdateBounds(const QuME_Vector& inVector);
     QuME_Bounds forExport();
+    bool BoundsSet;
 };
 
 std::ostream& operator<<(std::ostream& os, const QuME_Bounds& o);

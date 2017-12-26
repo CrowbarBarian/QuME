@@ -1,6 +1,9 @@
 #ifndef QUME_BSPOBJEXPORTER_H_INCLUDED
 #define QUME_BSPOBJEXPORTER_H_INCLUDED
 
+#include "QuME_App.h"
+wxDECLARE_APP(QuME_App);
+
 #include "QuME_Main.h"
 
 #include "QuME_Common.h"
@@ -19,6 +22,7 @@ public:
                          QuME_BSP_Data* BSPData,
                          const std::wstring& BaseFileName,
                          const std::wstring& FullPath);
+	~QuME_BSP_ObjExporter();
 
     // thread execution starts here
     virtual void* Entry();

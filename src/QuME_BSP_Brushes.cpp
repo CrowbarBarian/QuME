@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_BSP_Brushes.cpp
+ * Purpose:		Classes to handle BSP brushes and brush sides
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_BSP_Brushes.h"
 
 bool QuME_BSP_BrushSides::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength)

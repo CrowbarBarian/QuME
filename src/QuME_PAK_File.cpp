@@ -1,30 +1,33 @@
+/***************************************************************
+ * Name:		QuME_PAK_File.cpp
+ * Purpose:		Handler for PAK files
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_PAK_File.h"
 
 QuME_PAK_DirEntry::QuME_PAK_DirEntry()
 {
-	//this->fileName = nullptr;
-	//this->fileName = new std::wstring;
 	this->fileOffset = 0;
 	this->fileSize = 0;
 }
 
-QuME_PAK_DirEntry::QuME_PAK_DirEntry(const std::wstring fname, const wxUint32 foff, const wxUint32 fsize)
+QuME_PAK_DirEntry::QuME_PAK_DirEntry(const std::wstring& fname, const wxUint32 foff, const wxUint32 fsize):fileName(fname)
 {
-	this->fileName = fname;
 	this->fileOffset = foff;
 	this->fileSize = fsize;
 }
 
-QuME_PAK_DirEntry::QuME_PAK_DirEntry(const QuME_PAK_DirEntry& o)
+QuME_PAK_DirEntry::QuME_PAK_DirEntry(const QuME_PAK_DirEntry& o):fileName(o.fileName)
 {
-	this->fileName = o.fileName;
 	this->fileOffset = o.fileOffset;
 	this->fileSize = o.fileSize;
 }
 
 QuME_PAK_DirEntry::~QuME_PAK_DirEntry()
 {
-	//SAFE_DELETE(this->fileName);
 }
 
 QuME_PAK_DirEntry& QuME_PAK_DirEntry::operator=(const QuME_PAK_DirEntry& o)
@@ -73,11 +76,8 @@ QuME_PAK_File::~QuME_PAK_File()
 {
 	this->dirLength = 0;
 	this->dirOffset = 0;
-	//std::cout << "***********************************************\nDeleting " << this->pakFileName << "\n";
-	//std::cout.flush();
-	//SAFE_ARRAY_DELETE(this->dirEntryArray);
+	SAFE_ARRAY_DELETE(this->dirEntryArray);
 	this->dirEntryArrayCount = 0;
-	//pakFileName = L"";
 }
 
 void QuME_PAK_File::LoadPAKFileInfo()
@@ -87,7 +87,6 @@ void QuME_PAK_File::LoadPAKFileInfo()
     if(!input_stream.IsOk())
 	{
 		throw std::runtime_error("Cannot open .pak file!");
-		return;
 	}
 
 	wxDataInputStream binData(input_stream);
@@ -95,7 +94,6 @@ void QuME_PAK_File::LoadPAKFileInfo()
 	if(input_stream.SeekI(0, wxFromStart) == wxInvalidOffset)
 	{
 		throw std::runtime_error("Cannot seek to start of file!");
-		return;
 	}
 
 	wxUint32 magic = binData.Read32();
@@ -103,27 +101,23 @@ void QuME_PAK_File::LoadPAKFileInfo()
 	if(magic != this->pakID)
 	{
 		throw std::runtime_error("Not a valid .pak file!");
-		return;
 	}
 
 	this->dirOffset = binData.Read32();
 	if(!binData.IsOk())
     {
     	throw std::runtime_error("Cannot read .pak file header!");
-        return;
     }
 
     this->dirLength = binData.Read32();
    	if(!binData.IsOk())
     {
     	throw std::runtime_error("Cannot read .pak file header!");
-        return;
     }
 
 	if(input_stream.SeekI(this->dirOffset, wxFromStart) == wxInvalidOffset)
 	{
 		throw std::runtime_error("Cannot seek to start of .pak file directory!");
-		return;
 	}
 
     for(wxUint32 entryCount = 0; entryCount < this->dirLength / QUME_PAK_DIR_ENTRY_LENGTH; entryCount++)
@@ -135,7 +129,6 @@ void QuME_PAK_File::LoadPAKFileInfo()
 			if(!binData.IsOk())
 			{
 		    	throw std::runtime_error("Cannot read filename in entry #" + std::to_string(entryCount));
-		    	return;
 			}
 		}
 		std::wstring fname = nameBuf;
@@ -143,30 +136,20 @@ void QuME_PAK_File::LoadPAKFileInfo()
 		if(!binData.IsOk())
 		{
 			throw std::runtime_error("Cannot read file offset in entry #" + std::to_string(entryCount));
-			return;
 		}
 		wxUint32 flen = binData.Read32();
 		if(!binData.IsOk())
 		{
 			throw std::runtime_error("Cannot read file length in entry #" + std::to_string(entryCount));
-			return;
 		}
 		QuME_PAK_DirEntry dEntry;
 		dEntry.fileName = fname;
-		//std::cout << "FileName: " << fname << "\n";
 		dEntry.fileOffset = foff;
 		dEntry.fileSize = flen;
 		this->dirEntries.Append(dEntry);
 	}
 
 	this->dirEntryArrayCount = this->dirEntries.ToArray(this->dirEntryArray);
-	//std::cout << this->pakFileName << "\n";
-
-	//for(wxUint64 i = 0; i < this->dirEntryArrayCount; i++)
-	//{
-	//	std::cout << this->dirEntryArray[i].fileName << "\n";
-	//	std::cout.flush();
-	//}
 }
 
 QuME_PAK_DirEntry* QuME_PAK_File::GetFileInfo(std::wstring fName)

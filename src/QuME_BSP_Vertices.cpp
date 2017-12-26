@@ -1,5 +1,12 @@
+/***************************************************************
+ * Name:		QuME_BSP_Vertices.cpp
+ * Purpose:		Code to handle BSP vertices
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_BSP_Vertices.h"
-#include <wx/log.h>
 
 QuME_BSP_Vertices::QuME_BSP_Vertices()
 {

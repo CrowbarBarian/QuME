@@ -1,16 +1,26 @@
+/***************************************************************
+ * Name:		QuME_BSP_Load.cpp
+ * Purpose:		Class to load and process all the data in a BSP file
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_BSP_Load.h"
 
-QuME_BSP_Load::QuME_BSP_Load(QuME_Frame* frame, QuME_BSP_Data* BSPData, const std::wstring& FileName):BSPFileName(FileName)
+QuME_BSP_Load::QuME_BSP_Load(QuME_Frame* frame,
+							QuME_BSP_Data* BSPData,
+							const std::wstring& FileName)
+							:BSPFileName(FileName)
 {
     Frame = frame;
     Data = BSPData;
-    //BSPFileName = FileName;
     FileError = false;
 }
 
 QuME_BSP_Load::~QuME_BSP_Load()
 {
-    wxCriticalSectionLocker locker(wxGetApp().CritSect);
+    wxCriticalSectionLocker locker(wxGetApp().CritSectThreads);
 
     wxArrayThread& threads = wxGetApp().Threads;
     threads.Remove(this);

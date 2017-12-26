@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_Common.h
+ * Purpose:		Defines common utility procedures as well as common includes
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #ifndef QUME_COMMON_H_INCLUDED
 #define QUME_COMMON_H_INCLUDED
 

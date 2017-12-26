@@ -10,7 +10,7 @@
 #ifndef QUME_MAIN_H
 #define QUME_MAIN_H
 
-#define QUME_VERSION L"0.2.2"
+#define QUME_VERSION L"0.2.3"
 
 #include "QuME_Common.h"
 #include <wx/spinctrl.h>

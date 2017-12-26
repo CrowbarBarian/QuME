@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_BSP_Textures.cpp
+ * Purpose:		Code for the BSP texture class
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_BSP_Textures.h"
 
 QuME_BSP_Textures::QuME_BSP_Textures()

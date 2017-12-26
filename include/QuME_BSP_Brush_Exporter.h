@@ -1,6 +1,9 @@
 #ifndef QUME_BSP_BRUSH_EXPORTER_H
 #define QUME_BSP_BRUSH_EXPORTER_H
 
+#include "QuME_App.h"
+wxDECLARE_APP(QuME_App);
+
 #include "QuME_Main.h"
 
 #include "QuME_Common.h"

@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_Vector.cpp
+ * Purpose:		Code for the basic 3d vector class
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_Vector.h"
 
 QuME_Vector::QuME_Vector()
@@ -167,35 +175,12 @@ QuME_Vector QuME_Vector::operator/(const QuME_Vector& o)
     return t;
 }
 
-#if 0
-bool QuME_Vector::operator==(const QuME_Vector& o)
-{
-    return ((x == o.x) && (y == o.y)&& (z == o.z));
-}
-#endif // 0
-
-//test for equality by using a slop factor
 bool QuME_Vector::operator==(const QuME_Vector& o)
 {
     QuME_Vector t(*this - o);
     if(t.length2() > (QUME_VERTEX_WELD_FACTOR*QUME_VERTEX_WELD_FACTOR)) return false;
     return true;
 }
-
-#if 0
-wxUint32 QuME_Vector::gethash()
-{
-    wxUint32 xi = std::fabs(std::trunc(this->x));
-    wxUint32 yi = std::fabs(std::trunc(this->y));
-	wxUint32 zi = std::fabs(std::trunc(this->z));
-
-	wxUint32 result = xi & QUME_HASHMASK >> QUME_HASHMASKSHIFT;
-	result |= (yi & QUME_HASHMASK) << QUME_HASHMASKBITCOUNT;
-	result |= (zi & QUME_HASHMASK) << QUME_HASHMASKBITCOUNT;
-
-	return result; //should be between 0 and 2^(QUME_HASHMASKSHIFT * 3) - 1
-}
-#endif // 0
 
 bool QuME_Vector::operator!=(const QuME_Vector& o)
 {

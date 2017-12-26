@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_BSP_Planes.cpp
+ * Purpose:		Class to handle BSP planes
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_BSP_Planes.h"
 
 QuME_BSP_Planes::QuME_BSP_Planes()

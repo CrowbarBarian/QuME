@@ -234,11 +234,11 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
                         if(VertInside)
                         {
                         	//vertex is inside brush, add to brush vertices
-                        	wxUint32 AddedIndex = CurrentBrush->VertexList.AddIfUnique(CurrentVertex);
+                        	wxUint32 AddedIndex = CurrentBrush->VertexList.AppendIfUnique(CurrentVertex);
                         	//add index of added vertex to brush sides for later
-							BrushSide[i].VertexList.AddIfUnique(AddedIndex); //these indices are relative to CurrentBrush->VertexArray
-							BrushSide[j].VertexList.AddIfUnique(AddedIndex);
-							BrushSide[k].VertexList.AddIfUnique(AddedIndex);
+							BrushSide[i].VertexList.AppendIfUnique(AddedIndex); //these indices are relative to CurrentBrush->VertexArray
+							BrushSide[j].VertexList.AppendIfUnique(AddedIndex);
+							BrushSide[k].VertexList.AppendIfUnique(AddedIndex);
                         }
                     }
                 }
@@ -265,7 +265,7 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
 				{
 					if(CurrentSide->VertexArray[i] == VertexIndex)
 					{
-						CurrentSide->VertexIndexList.AddIfUnique(AddedIndex);
+						CurrentSide->VertexIndexList.AppendIfUnique(AddedIndex);
 					}
 				}
 				CurrentSide->VertexIndexArrayCount = CurrentSide->VertexIndexList.ToArray(CurrentSide->VertexIndexArray);

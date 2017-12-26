@@ -1,7 +1,15 @@
+/***************************************************************
+ * Name:		QuME_Lists.h
+ * Purpose:		Defines Linked List template
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #ifndef QUME_LISTS_H_INCLUDED
 #define QUME_LISTS_H_INCLUDED
 
-#include "QuME_Common.h" //for wxUint32 def
+#include "QuME_Common.h" //for wxUint64 def
 
 template <class T>
 class ListItem
@@ -20,7 +28,8 @@ public:
     }
     ~ListItem()
     {
-
+		next = nullptr;
+		prev = nullptr;
     }
 
     ListItem* next;
@@ -57,14 +66,12 @@ public:
     }
 
     wxUint64 Add(const T& Item);
+    wxUint64 AddIfUnique(const T& Item);
     wxUint64 Append(const T& Item);
-    //wxUint32 Append(T Item);
     wxUint64 Append(const QuME_LinkedList<T>& List);
 
-    wxUint64 AddIfUnique(const T& Item);
-    //T* ToArray(wxUint32& OutCount);
+    wxUint64 AppendIfUnique(const T& Item);
     wxUint64 ToArray(T*& OutArray);
-    wxUint64 ToArray(T OutArray);
     ListItem<T>* Remove(T& Item);
     ListItem<T>* RemoveByIndex(wxUint64 idx);
 
@@ -92,6 +99,25 @@ wxUint64 QuME_LinkedList<T>::Add(const T& Item)
 	Count++;
 	Head->Index = NextIndex++;
 	return Head->Index;
+}
+
+template <class T>
+wxUint64 QuME_LinkedList<T>::AddIfUnique(const T& Item)
+{
+	wxUint64 idx = 0;
+    if(Head == nullptr)
+    {
+    	idx = this->Add(Item);
+    	return idx;
+    }
+
+    for(ListItem<T>* l = Head; l != nullptr; l = l->next)
+    {
+        if(l->Data == Item) return l->Index;
+    }
+
+    idx = this->Add(Item);
+    return idx;
 }
 
 template <class T>
@@ -127,15 +153,13 @@ wxUint64 QuME_LinkedList<T>::Append(const QuME_LinkedList<T>& List)
 }
 
 template <class T>
-wxUint64 QuME_LinkedList<T>::AddIfUnique(const T& Item)
+wxUint64 QuME_LinkedList<T>::AppendIfUnique(const T& Item)
 {
+	wxUint64 idx = 0;
     if(Head == nullptr)
     {
-        Head = new ListItem<T>(Item);
-        Tail = Head;
-        Count++;
-        Head->Index = NextIndex++;
-        return Head->Index;
+    	idx = this->Append(Item);
+    	return idx;
     }
 
     for(ListItem<T>* l = Head; l != nullptr; l = l->next)
@@ -143,12 +167,8 @@ wxUint64 QuME_LinkedList<T>::AddIfUnique(const T& Item)
         if(l->Data == Item) return l->Index;
     }
 
-    Tail->next = new ListItem<T>(Item);
-    Tail->next->prev = Tail;
-    Tail = Tail->next;
-    Count++;
-    Tail->Index = NextIndex++;
-    return Tail->Index;
+    idx = this->Append(Item);
+    return idx;
 }
 
 template <class T>
@@ -235,20 +255,6 @@ ListItem<T>* QuME_LinkedList<T>::RemoveByIndex(wxUint64 idx)
     return nullptr; //not found
 }
 
-#if 0
-template <class T>
-T* QuME_LinkedList<T>::ToArray(wxUint32& OutCount)
-{
-    OutCount = 0;
-    T* t = new T[Count];
-    for(ListItem<T>* l = Head; l != nullptr; l = l->next)
-    {
-        t[OutCount++] = l->Data;
-    }
-    return t;
-}
-#endif // 0
-
 template <class T>
 wxUint64 QuME_LinkedList<T>::ToArray(T*& OutArray)
 {
@@ -261,20 +267,5 @@ wxUint64 QuME_LinkedList<T>::ToArray(T*& OutArray)
     }
     return t;
 }
-
-#if 0
-template <class T>
-wxUint64 QuME_LinkedList<T>::ToArray(T OutArray)
-{
-    wxUint64 t = 0;
-    SAFE_ARRAY_DELETE(OutArray);
-    OutArray = new T[Count];
-    for(ListItem<T>* l = Head; l != nullptr; l = l->next)
-    {
-        OutArray[t++] = l->Data;
-    }
-    return t;
-}
-#endif // 0
 
 #endif // QUME_LISTS_H_INCLUDED

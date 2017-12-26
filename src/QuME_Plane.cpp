@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:
+ * Purpose:
+ * Author:    J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright: J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:   GPL v3
+ **************************************************************/
+
 #include "QuME_Plane.h"
 
 QuME_Plane::QuME_Plane():Normal(1.0,0.0,0.0)
@@ -109,19 +117,17 @@ void LUPSolve(wxFloat64 A[3][3], wxInt32 *P, wxFloat64 *b, wxFloat64 *x)
 
 bool QuME_Plane::Intersect(const QuME_Plane& other1, const QuME_Plane& other2, QuME_Vector& v)
 {
+	//set up initial matrix for solver
     wxFloat64 Matrix[3][3];
     Matrix[0][0] = this->Normal.x;
     Matrix[0][1] = this->Normal.y;
     Matrix[0][2] = this->Normal.z;
-    //Matrix[0][3] = this->Distance;
     Matrix[1][0] = other1.Normal.x;
     Matrix[1][1] = other1.Normal.y;
     Matrix[1][2] = other1.Normal.z;
-    //Matrix[1][3] = other1.Distance;
     Matrix[2][0] = other2.Normal.x;
     Matrix[2][1] = other2.Normal.y;
     Matrix[2][2] = other2.Normal.z;
-    //Matrix[2][3] = other2.Distance;
 
     wxFloat64 Vect[3];
     Vect[0] = this->Distance;

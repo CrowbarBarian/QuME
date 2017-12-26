@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_BSP_ObjExporter.cpp
+ * Purpose:		Class to export processed BSP geometry
+ * Author:    J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright: J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:   GPL v3
+ **************************************************************/
+
 #include "QuME_BSP_ObjExporter.h"
 
 QuME_BSP_ObjExporter::QuME_BSP_ObjExporter(QuME_Frame* frame,
@@ -9,6 +17,26 @@ QuME_BSP_ObjExporter::QuME_BSP_ObjExporter(QuME_Frame* frame,
     Frame = frame;
     Data = BSPData;
     FileError = false;
+}
+
+QuME_BSP_ObjExporter::~QuME_BSP_ObjExporter()
+{
+    wxCriticalSectionLocker locker(wxGetApp().CritSectThreads);
+
+    wxArrayThread& threads = wxGetApp().Threads;
+    threads.Remove(this);
+
+    if ( threads.IsEmpty() )
+    {
+        // signal the main thread that there are no more threads left if it is
+        // waiting for us
+        if ( wxGetApp().ShuttingDown )
+        {
+            wxGetApp().ShuttingDown = false;
+
+            wxGetApp().AllDone.Post();
+        }
+    }
 }
 
 void QuME_BSP_ObjExporter::OnExit()

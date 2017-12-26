@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_PAK_File.h
+ * Purpose:		Defines for PAK file handler
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #ifndef QUME_PAK_FILE_H
 #define QUME_PAK_FILE_H
 
@@ -12,7 +20,7 @@ class QuME_PAK_DirEntry
 {
 public:
 	QuME_PAK_DirEntry();
-	QuME_PAK_DirEntry(const std::wstring fname, wxUint32 foff, wxUint32 fsize);
+	QuME_PAK_DirEntry(const std::wstring& fname, wxUint32 foff, wxUint32 fsize);
 	QuME_PAK_DirEntry(const QuME_PAK_DirEntry& o);
 	~QuME_PAK_DirEntry();
 
@@ -29,7 +37,7 @@ class QuME_PAK_File
 {
 public:
     QuME_PAK_File();
-    QuME_PAK_File(std::wstring fname);
+    explicit QuME_PAK_File(std::wstring fname);
     QuME_PAK_File(const QuME_PAK_File& o);
     ~QuME_PAK_File();
 

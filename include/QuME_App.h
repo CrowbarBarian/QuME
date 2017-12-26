@@ -21,7 +21,7 @@ public:
 
     virtual bool OnInit();
 
-    wxCriticalSection CritSect;
+    wxCriticalSection CritSectThreads;
     wxArrayThread Threads;
     wxSemaphore AllDone;
 

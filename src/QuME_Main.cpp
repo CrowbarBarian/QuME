@@ -1,10 +1,10 @@
 /***************************************************************
- * Name:      QuME_Main.cpp
- * Purpose:   Code for Application Frame
- * Author:    J Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
- * Created:   2017-06-13
- * Copyright: J Thomas (Crowbarbarian) ()
- * License:   GPL v3
+ * Name:		QuME_Main.cpp
+ * Purpose:		Code for Application Frame
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Created:		2017-06-13
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
  **************************************************************/
 
 #include "QuME_Main.h"
@@ -17,6 +17,7 @@
 #include <wx/icon.h>
 #include <wx/image.h>
 
+const long QuME_Frame::ID_QUME = wxNewId();
 const long QuME_Frame::ID_INFOCONSOLE = wxNewId();
 
 const long QuME_Frame::ID_SPIN_FACE_EXAMINE = wxNewId();
@@ -70,15 +71,17 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
 
     //the main dialog
     Create(parent,
-		wxID_ANY,
+		ID_QUME,
 		title,
 		wxDefaultPosition,
 		wxSize(800, 600),
-		wxMINIMIZE_BOX|wxCLOSE_BOX|wxCAPTION,
+		((wxMINIMIZE_BOX|wxCLOSE_BOX|wxCAPTION|wxSYSTEM_MENU) & ~wxMAXIMIZE_BOX),
 		L"ID_QUME");
     {
         wxIcon frameIcon;
-        frameIcon.CopyFromBitmap(wxBitmap(wxImage(L"QuME_icon.png")));
+        wxImage iconImage(48,48,true);
+        iconImage.SetData(this->icon_image.pixel_data, true);
+		frameIcon.CopyFromBitmap(wxBitmap(iconImage));
         SetIcon(frameIcon);
     }
 
@@ -371,7 +374,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
 				QuME_PAK_File f;
 				f.pakFileName = pn;
 				f.LoadPAKFileInfo();
-				this->pakFiles.AddIfUnique(f);
+				this->pakFiles.AppendIfUnique(f);
 				cont = gDir.GetNext(&pakname);
 			}
 
@@ -403,7 +406,7 @@ QuME_Frame::~QuME_Frame()
     //*)
 
     {
-        wxCriticalSectionLocker locker(wxGetApp().CritSect);
+        wxCriticalSectionLocker locker(wxGetApp().CritSectThreads);
 
         const wxArrayThread& threads = wxGetApp().Threads;
         size_t count = threads.GetCount();
@@ -411,7 +414,9 @@ QuME_Frame::~QuME_Frame()
         if (count == 0)
         {
             SAFE_DELETE(this->bsp);
+            this->bsp = nullptr;
 			SAFE_DELETE(this->configuration);
+			this->configuration = nullptr;
 			//SAFE_DELETE(this->glContext);
             return;
         }
@@ -421,8 +426,10 @@ QuME_Frame::~QuME_Frame()
     wxGetApp().AllDone.Wait();
 
     //Wait until all threads have exited before deleting BSP Data
-    SAFE_DELETE(this->bsp);
-    SAFE_DELETE(this->configuration);
+	SAFE_DELETE(this->bsp);
+	this->bsp = nullptr;
+	SAFE_DELETE(this->configuration);
+	this->configuration = nullptr;
     //SAFE_DELETE(this->glContext);
 }
 
@@ -511,7 +518,7 @@ void QuME_Frame::OnOpenBSP(wxCommandEvent& event)
 
     importCanceled = false;
 
-    wxCriticalSectionLocker enter(wxGetApp().CritSect);
+    wxCriticalSectionLocker enter(wxGetApp().CritSectThreads);
     wxGetApp().Threads.Add(thread);
 
     thread->Run();
@@ -549,6 +556,9 @@ void QuME_Frame::OnWavefrontExport(wxCommandEvent& event)
     // thread is not running yet, no need for crit sect
     exportCanceled = false;
 
+    wxCriticalSectionLocker enter(wxGetApp().CritSectThreads);
+    wxGetApp().Threads.Add(thread);
+
     thread->Run();
 }
 
@@ -584,6 +594,9 @@ void QuME_Frame::OnBrushExport(wxCommandEvent& event)
     // thread is not running yet, no need for crit sect
     exportCanceled = false;
 
+    wxCriticalSectionLocker enter(wxGetApp().CritSectThreads);
+    wxGetApp().Threads.Add(thread);
+
     thread->Run();
 }
 
@@ -612,7 +625,6 @@ void QuME_Frame::OnObjExportEvent(wxThreadEvent& event)
         ExportProgressDialog->Close();
         ExportProgressDialog = nullptr;
 
-
         wxMessageBox(L"Error exporting .obj file!", L"Export Error!", 0, this);
 
         wxWakeUpIdle();
@@ -625,7 +637,6 @@ void QuME_Frame::OnObjExportEvent(wxThreadEvent& event)
 
 			exportCanceled = true;
 		}
-
 	}
 }
 
@@ -651,8 +662,7 @@ void QuME_Frame::OnBrushExportEvent(wxThreadEvent& event)
     else if(n == -2) //error, close progress dialog and report
     {
         ExportProgressDialog->Close();
-        ExportProgressDialog = nullptr;
-
+		ExportProgressDialog = nullptr;
 
         wxMessageBox(L"Error exporting brushes!", L"Export Error!", 0, this);
 
@@ -675,8 +685,8 @@ void QuME_Frame::OnSpinFaceExamineChange(wxSpinEvent& event)
     wxUint32 i = spinFaceExamine->GetValue();
     if(i >= bsp->Faces.Count)
     {
-        spinFaceExamine->SetValue(0);
-        i = 0;
+        spinFaceExamine->SetValue(bsp->Faces.Count);
+        i = bsp->Faces.Count;
     }
     QuME_BSP_Face* f = &bsp->Faces.Face[i];
     QuME_BSP_Texture* t = &bsp->Textures.Texture[f->TextureInfo];
@@ -763,6 +773,67 @@ void QuME_Frame::OnUpdateBrushExport(wxUpdateUIEvent& event)
     //event.Enable( ExportProgressDialog == nullptr );
 }
 
+void QuME_Frame::OnBSPProcessingEvent(wxThreadEvent& event)
+{
+    if(this->BSPProcessingProgressDialog == nullptr)
+    {
+        BSPProcessingProgressDialog = new wxProgressDialog(L"Processing BSP data ...",
+                L"",
+                100,
+                this,
+                0);
+    }
+
+    int n = event.GetInt();
+    if(n == -1)
+    {
+        BSPProcessingProgressDialog->Destroy();
+        //BSPProcessingProgressDialog = nullptr;
+
+        wxWakeUpIdle();
+    }
+    else
+    {
+        BSPProcessingProgressDialog->Update(n);
+    }
+}
+
+void QuME_Frame::OnBSPImportEvent(wxThreadEvent& event)
+{
+    infoConsole->AppendText(event.GetString());
+    if(event.GetString().compare(L"File Loaded!\n\n") == 0)
+    {
+        //file loaded successfully, enable everything
+        menuOpen->Enable(true);
+        menuExport->Enable(true);
+        menuBrushes->Enable(true);
+        spinFaceExamine->Enable();
+        spinFaceExamine->SetRange(0, this->bsp->Faces.Count);
+        spinEntityToExamine->Enable();
+        spinEntityToExamine->SetRange(0, this->bsp->Entities.EntityCount);
+        spinTextureExamine->Enable();
+        spinTextureExamine->SetRange(0, this->bsp->Textures.Count);
+    }
+    else if((event.GetString().compare(L"Load Failed!\n\n") == 0) || (event.GetString().compare(L"Load Canceled!\n\n") == 0))
+    {
+        spinFaceExamine->Disable();
+        spinFaceExamine->SetRange(0, 0);
+        spinEntityToExamine->Disable();
+        spinEntityToExamine->SetRange(0, 0);
+        spinTextureExamine->Disable();
+        spinTextureExamine->SetRange(0, 0);
+        menuOpen->Enable(true);
+        menuExport->Enable(false);
+        menuBrushes->Enable(false);
+    }
+}
+
+//method to allow threads to write to console window safely
+void QuME_Frame::OnConsoleLogEvent(wxThreadEvent& event)
+{
+    infoConsole->AppendText(event.GetString());
+}
+
 //timer based GLCanvas refresh + other things
 void QuME_Frame::UpdateGLWindow(wxTimerEvent& event)
 {
@@ -814,64 +885,3 @@ void QuME_Frame::UpdateGLWindow(wxTimerEvent& event)
     }
 }
 
-void QuME_Frame::OnBSPProcessingEvent(wxThreadEvent& event)
-{
-    if(this->BSPProcessingProgressDialog == nullptr)
-    {
-        BSPProcessingProgressDialog = new wxProgressDialog(L"Processing BSP data ...",
-                L"",
-                100,
-                this,
-                0);
-    }
-
-    int n = event.GetInt();
-    if(n == -1)
-    {
-        BSPProcessingProgressDialog->Destroy();
-        BSPProcessingProgressDialog = nullptr;
-
-        wxWakeUpIdle();
-    }
-    else
-    {
-        BSPProcessingProgressDialog->Update(n);
-    }
-}
-
-void QuME_Frame::OnBSPImportEvent(wxThreadEvent& event)
-{
-    infoConsole->AppendText(event.GetString());
-    if(event.GetString().compare(L"File Loaded!\n\n") == 0)
-    {
-        //file loaded successfully, enable everything
-        menuOpen->Enable(true);
-
-        menuExport->Enable(true);
-        menuBrushes->Enable(true);
-        spinFaceExamine->Enable();
-        spinFaceExamine->SetRange(0, this->bsp->Faces.Count);
-        spinEntityToExamine->Enable();
-        spinEntityToExamine->SetRange(0, this->bsp->Entities.EntityCount);
-        spinTextureExamine->Enable();
-        spinTextureExamine->SetRange(0, this->bsp->Textures.Count);
-    }
-    else if((event.GetString().compare(L"Load Failed!\n\n") == 0) || (event.GetString().compare(L"Load Canceled!\n\n") == 0))
-    {
-        spinFaceExamine->Disable();
-        spinFaceExamine->SetRange(0, 0);
-        spinEntityToExamine->Disable();
-        spinEntityToExamine->SetRange(0, 0);
-        spinTextureExamine->Disable();
-        spinTextureExamine->SetRange(0, 0);
-        menuOpen->Enable(true);
-        menuExport->Enable(false);
-        menuBrushes->Enable(false);
-    }
-}
-
-//method to allow threads to write to console window safely
-void QuME_Frame::OnConsoleLogEvent(wxThreadEvent& event)
-{
-    infoConsole->AppendText(event.GetString());
-}

@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:
+ * Purpose:
+ * Author:    J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright: J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:   GPL v3
+ **************************************************************/
+
 #include "QuME_BSP_Faces.h"
 
 QuME_BSP_Face::QuME_BSP_Face()

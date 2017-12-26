@@ -1,3 +1,10 @@
+/***************************************************************
+ * Name:		QuME_BSP_Brush_Exporter.cpp
+ * Purpose:		Class to export unprocessed BSP brushes
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
 #include "QuME_BSP_Brush_Exporter.h"
 
 QuME_BSP_Brush_Exporter::QuME_BSP_Brush_Exporter(QuME_Frame* frame,
@@ -13,6 +20,22 @@ QuME_BSP_Brush_Exporter::QuME_BSP_Brush_Exporter(QuME_Frame* frame,
 
 QuME_BSP_Brush_Exporter::~QuME_BSP_Brush_Exporter()
 {
+    wxCriticalSectionLocker locker(wxGetApp().CritSectThreads);
+
+    wxArrayThread& threads = wxGetApp().Threads;
+    threads.Remove(this);
+
+    if ( threads.IsEmpty() )
+    {
+        // signal the main thread that there are no more threads left if it is
+        // waiting for us
+        if ( wxGetApp().ShuttingDown )
+        {
+            wxGetApp().ShuttingDown = false;
+
+            wxGetApp().AllDone.Post();
+        }
+    }
 }
 
 void QuME_BSP_Brush_Exporter::OnExit()
@@ -135,10 +158,6 @@ wxThread::ExitCode QuME_BSP_Brush_Exporter::Entry()
 			wxQueueEvent(Frame, event.Clone());
 			updateOld = currentProgress;
 		}
-
-        //*outstr << L"v " << Data->BrushVertices.Vertices[i].x * -QUME_EXPORTSCALEFACTOR;
-        //*outstr << L" " << Data->BrushVertices.Vertices[i].z * QUME_EXPORTSCALEFACTOR;
-        //*outstr << L" " << Data->BrushVertices.Vertices[i].y * QUME_EXPORTSCALEFACTOR << L"\n";
 
         *outstr << L"v " << Data->BrushVertices.Vertices[i].forExport() << L"\n";
     }

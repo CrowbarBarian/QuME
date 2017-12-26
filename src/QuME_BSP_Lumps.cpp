@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_BSP_Lumps.cpp
+ * Purpose:		Class that handles the BSP lump directory
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_BSP_Lumps.h"
 
 //Lump name table

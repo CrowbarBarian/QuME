@@ -1,3 +1,11 @@
+/***************************************************************
+ * Name:		QuME_BSP_Edges.cpp
+ * Purpose:		Class to handle BSP edges
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
+
 #include "QuME_BSP_Edges.h"
 
 QuME_BSP_Edges::QuME_BSP_Edges()

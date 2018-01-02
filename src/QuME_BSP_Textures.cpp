@@ -10,20 +10,14 @@
 
 QuME_BSP_Textures::QuME_BSP_Textures()
 {
-    Count = 0;
-    Texture = nullptr;
 }
 
 QuME_BSP_Textures::~QuME_BSP_Textures()
 {
-    Count = 0;
-    if(Texture !=nullptr) delete[] Texture;
 }
 
 bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length, const std::wstring& baseDir)
 {
-    this->Count = length / TEXTURE_SIZE_ON_DISK;
-
     wxDataInputStream* binData = new wxDataInputStream( *infile );
 
     if(!binData->IsOk())
@@ -38,18 +32,13 @@ bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
         return false;
     }
 
-    this->Texture = new QuME_BSP_Texture[this->Count];
-    if(this->Texture == nullptr)
-    {
-        delete binData;
-        return false;
-    }
+    this->TextureInfo.Allocate(length / TEXTURE_SIZE_ON_DISK);
 
     binData->UseBasicPrecisions(); //Need this to get correct input data...we're reading 32-bit floats, not 80-bit
 
-    for(wxUint32 i = 0; i < this->Count; i++)
+    for(wxUint32 i = 0; i < this->TextureInfo.Count; i++)
     {
-        QuME_BSP_Texture* t = &this->Texture[i];
+        QuME_BSP_Texture* t = &this->TextureInfo[i];
         t->uAxis.x = binData->ReadFloat();
         t->uAxis.y = binData->ReadFloat();
         t->uAxis.z = binData->ReadFloat();
@@ -80,7 +69,7 @@ bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
                                                        L".wal");
         if(!walFile->IsOk())
         {
-            this->FaultTexture = baseDir + L"textures/" + t->MaterialName + L".wal";
+            this->FaultTexture = L"textures/" + t->MaterialName + L".wal";
             return false;
         }
         wxDataInputStream* walData = new wxDataInputStream(*walFile);
@@ -105,7 +94,6 @@ bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
 
     if(!binData->IsOk())
     {
-        delete this->Texture;
         delete binData;
         return false;
     }
@@ -117,11 +105,11 @@ bool QuME_BSP_Textures::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxU
 
 void QuME_BSP_Textures::DebugDump(wxTextOutputStream& out)
 {
-    out << L"Textures: " << this->Count << L"\n";
-    for(wxUint32 i = 0; i < this->Count; i++)
+    out << L"Textures: " << std::to_wstring(this->TextureInfo.Count) << L"\n";
+    for(wxUint32 i = 0; i < this->TextureInfo.Count; i++)
     {
         out << L"Texture " << i << "\n";
-        this->Texture[i].DebugDump(out);
+        this->TextureInfo[i].DebugDump(out);
     }
     out << L"\n------------------------------\n";
 }

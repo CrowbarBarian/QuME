@@ -22,8 +22,6 @@ QuME_BSP_Planes::~QuME_BSP_Planes()
 
 bool QuME_BSP_Planes::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength)
 {
-    this->BSPPlaneArray.Count = lumpLength / Q2_BSP_PLANE_DATA_SIZE;
-
     wxDataInputStream* binData = new wxDataInputStream( *infile );
 
     if(!binData->IsOk())
@@ -38,23 +36,17 @@ bool QuME_BSP_Planes::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUin
         return false;
     }
 
-    //this->BSPPlane = new QuME_BSP_Plane[this->Count];
-    this->BSPPlaneArray.Data = new QuME_BSP_Plane[this->BSPPlaneArray.Count];
-    if(this->BSPPlaneArray.Data == nullptr)
-    {
-        delete binData;
-        return false;
-    }
+    this->Planes.Allocate(lumpLength / Q2_BSP_PLANE_DATA_SIZE);
 
     binData->UseBasicPrecisions();
 
-    for(wxUint32 i = 0; i < this->BSPPlaneArray.Count; i++)
+    for(wxUint32 i = 0; i < this->Planes.Count; i++)
     {
-        this->BSPPlaneArray.Data[i].Plane.Normal.x = binData->ReadFloat();
-        this->BSPPlaneArray.Data[i].Plane.Normal.y = binData->ReadFloat();
-        this->BSPPlaneArray.Data[i].Plane.Normal.z = binData->ReadFloat();
-        this->BSPPlaneArray.Data[i].Plane.Distance = binData->ReadFloat();
-        this->BSPPlaneArray.Data[i].Flags = binData->Read32();
+        this->Planes[i].Plane.Normal.x = binData->ReadFloat();
+        this->Planes[i].Plane.Normal.y = binData->ReadFloat();
+        this->Planes[i].Plane.Normal.z = binData->ReadFloat();
+        this->Planes[i].Plane.Distance = binData->ReadFloat();
+        this->Planes[i].Flags = binData->Read32();
     }
 
     if(!binData->IsOk())

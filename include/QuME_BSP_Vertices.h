@@ -16,8 +16,7 @@ class QuME_BSP_Vertices
         bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength);
         void DebugDump(wxTextOutputStream& out);
 
-        wxUint32 VertexCount;
-        QuME_Vector* VertexArray;
+        QuME_Array<QuME_Vector> Vertices;
         QuME_LinkedList<QuME_Vector> VertexList;
 };
 

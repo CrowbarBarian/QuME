@@ -28,14 +28,6 @@ const long QuME_Frame::ID_STATICTEXT_FACEINSPECTOR = wxNewId();
 const long QuME_Frame::ID_STATICTEXT_ENTITYINSPECTOR = wxNewId();
 const long QuME_Frame::ID_STATICTEXT_TEXTUREINSPECTOR = wxNewId();
 const long QuME_Frame::ID_STATICTEXT_INFOCONSOLE = wxNewId();
-const long QuME_Frame::ID_STATICTEXT_PREVIEWWINDOW = wxNewId();
-const long QuME_Frame::ID_STATICTEXT_XROTATION = wxNewId();
-const long QuME_Frame::ID_STATICTEXT_YROTATION = wxNewId();
-const long QuME_Frame::ID_STATICTEXT_ZROTATION = wxNewId();
-
-const long QuME_Frame::ID_SLIDER_XROTATION = wxNewId();
-const long QuME_Frame::ID_SLIDER_YROTATION = wxNewId();
-const long QuME_Frame::ID_SLIDER_ZROTATION = wxNewId();
 
 const long QuME_Frame::ID_MENU_OPEN = wxNewId();
 const long QuME_Frame::ID_MENU_EXPORT = wxNewId();
@@ -44,10 +36,9 @@ const long QuME_Frame::ID_MENU_QUIT = wxNewId();
 const long QuME_Frame::ID_MENU_BASEDIR = wxNewId();
 const long QuME_Frame::ID_MENU_ABOUT = wxNewId();
 
-const long QuME_Frame::ID_STATUSBAR = wxNewId();
-const long QuME_Frame::ID_REFRESHTIMER = wxNewId();
-const long QuME_Frame::ID_MAINGLCANVAS = wxNewId();
+const long QuME_Frame::ID_PROGRESSBAR = wxNewId();
 
+const long QuME_Frame::ID_STATUSBAR = wxNewId();
 
 BEGIN_EVENT_TABLE(QuME_Frame,wxFrame)
     EVT_THREAD(OBJEXPORT_EVENT, QuME_Frame::OnObjExportEvent)
@@ -65,7 +56,8 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     wxMenu* menuHelp = nullptr;
     wxMenuBar* menuBar = nullptr;
     wxGridBagSizer* mainGridBagSizer = nullptr;
-    this->ExportProgressDialog = nullptr;
+
+    this->ProgressBar = nullptr;
     std::wstring title = L"QuME v";
     title += QUME_VERSION;
 
@@ -105,40 +97,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
                                L"ID_INFOCONSOLE");
     wxFont infoConsoleFont(10,wxFONTFAMILY_TELETYPE,wxFONTSTYLE_NORMAL,wxFONTWEIGHT_NORMAL,false,L"Liberation Mono",wxFONTENCODING_DEFAULT);
     infoConsole->SetFont(infoConsoleFont);
-    mainGridBagSizer->Add(infoConsole, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL|wxALIGN_RIGHT|wxALIGN_TOP, 5);
-
-#if 0
-    staticTextPreviewWindow = new wxStaticText(this,
-											ID_STATICTEXT_PREVIEWWINDOW,
-											L"Preview Window",
-											wxDefaultPosition,
-											wxDefaultSize,
-											0,
-											L"ID_STATICTEXT_PREVIEWWINDOW");
-    mainGridBagSizer->Add(staticTextPreviewWindow, wxGBPosition(0, 3), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-
-    //wxWidgets 3.0.3
-    mainGLCanvas = new wxGLCanvas(this,
-								ID_MAINGLCANVAS,
-								nullptr,
-								wxDefaultPosition,
-								wxSize(200,200),
-								0,
-								L"ID_MAINGLCANVAS",
-								wxNullPalette);
-
-/*	//wxWidgets 3.1
-    wxGLAttributes dispAttrs;
-    dispAttrs.PlatformDefaults().MinRGBA(8, 8, 8, 0).DoubleBuffer().Depth(24).EndList();
-    GLCanvas1 = new wxGLCanvas(this,
-                               dispAttrs,
-                               ID_MAINGLCANVAS,
-                               wxDefaultPosition,
-                               wxSize(200,200),
-                               0, _T("ID_MAINGLCANVAS"));
-*/
-    mainGridBagSizer->Add(mainGLCanvas, wxGBPosition(1, 2), wxGBSpan(1,2), wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-#endif // 0
+    mainGridBagSizer->Add(infoConsole, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALL|wxALIGN_RIGHT|wxALIGN_TOP, 2);
 
     //Face inspector GUI items
     staticTextFaceInspector = new wxStaticText(this,
@@ -206,77 +165,6 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     spinTextureExamine->SetToolTip(L"Texture to Examine");
     mainGridBagSizer->Add(spinTextureExamine, wxGBPosition(4, 1), wxDefaultSpan, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
 
-#if 0
-    staticTextXRotation = new wxStaticText(this,
-										ID_STATICTEXT_XROTATION,
-										L"X Rotation",
-										wxDefaultPosition,
-										wxDefaultSize,
-										0,
-										L"ID_STATICTEXT_XROTATION");
-    mainGridBagSizer->Add(staticTextXRotation, wxGBPosition(2, 2), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-
-    SliderXRotation = new wxSlider(this,
-								ID_SLIDER_XROTATION,
-								0,
-								-180,
-								180,
-								wxDefaultPosition,
-								wxSize(180,20),
-								0,
-								wxDefaultValidator,
-								L"ID_SLIDER_XROTATION");
-    SliderXRotation->SetToolTip(L"X Rotation");
-    SliderXRotation->SetHelpText(L"X Rotation");
-    mainGridBagSizer->Add(SliderXRotation, wxGBPosition(2, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-
-    staticTextYRotation = new wxStaticText(this,
-										ID_STATICTEXT_YROTATION,
-										L"Y Rotation",
-										wxDefaultPosition,
-										wxDefaultSize,
-										0,
-										L"ID_STATICTEXT_YROTATION");
-    mainGridBagSizer->Add(staticTextYRotation, wxGBPosition(3, 2), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-
-    SliderYRotation = new wxSlider(this,
-								ID_SLIDER_YROTATION,
-								0,
-								-180,
-								180,
-								wxDefaultPosition,
-								wxSize(180,20),
-								0,
-								wxDefaultValidator,
-								L"ID_SLIDER_YROTATION");
-    SliderYRotation->SetToolTip(L"Y Rotation");
-    SliderYRotation->SetHelpText(L"Y Rotation");
-    mainGridBagSizer->Add(SliderYRotation, wxGBPosition(3, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-
-    StaticTextZRotation = new wxStaticText(this,
-										ID_STATICTEXT_ZROTATION,
-										L"Z Rotation",
-										wxDefaultPosition,
-										wxDefaultSize,
-										0,
-										L"ID_STATICTEXT_ZROTATION");
-    mainGridBagSizer->Add(StaticTextZRotation, wxGBPosition(4, 2), wxDefaultSpan, wxALL|wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5);
-
-    SliderZRotation = new wxSlider(this,
-								ID_SLIDER_ZROTATION,
-								0,
-								-180,
-								180,
-								wxDefaultPosition,
-								wxSize(180,20),
-								0,
-								wxDefaultValidator,
-								L"ID_SLIDER_ZROTATION");
-    SliderZRotation->SetToolTip(L"Z Rotation");
-    SliderZRotation->SetHelpText(L"Z Rotation");
-    mainGridBagSizer->Add(SliderZRotation, wxGBPosition(4, 3), wxDefaultSpan, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5);
-#endif // 0
-
     //menus
     menuBar = new wxMenuBar();
     fileMenu = new wxMenu();
@@ -302,6 +190,23 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     menuBar->Append(menuHelp, L"Help");
     SetMenuBar(menuBar);
 
+    //progress bar
+    this->ProgressBar = new wxGauge(this,
+									ID_PROGRESSBAR,
+									100,
+									wxDefaultPosition,
+									wxSize(400, 16),
+									wxHORIZONTAL,
+									wxDefaultValidator,
+									L"ID_PROGRESSBAR");
+    this->ProgressBar->SetValue(0);
+	mainGridBagSizer->Add(this->ProgressBar,
+						wxGBPosition(5, 0),
+						wxGBSpan(1,3),
+						wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL,
+						2);
+    this->ProgressBar->Enable(false);
+
     //status bar
     statusBar = new wxStatusBar(this, ID_STATUSBAR, wxRAISED_BORDER, L"ID_STATUSBAR");
     int __wxStatusBarWidths_1[1] = { -1 };
@@ -314,10 +219,6 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     mainGridBagSizer->SetSizeHints(this);
     SetSizer(mainGridBagSizer);
 
-    //wxGLCanvas1 redraw timer
-    //refreshTimer.SetOwner(this, ID_REFRESHTIMER);
-    //refreshTimer.Start(100, false);
-
     //spin control event function handler bindings
     Connect(ID_SPIN_FACE_EXAMINE,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&QuME_Frame::OnSpinFaceExamineChange);
     Connect(ID_SPIN_ENTITY_EXAMINE,wxEVT_COMMAND_SPINCTRL_UPDATED,(wxObjectEventFunction)&QuME_Frame::OnSpinEntityExamineChange);
@@ -329,21 +230,16 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     //about dialog box popup event handler binding
     Connect(ID_MENU_ABOUT,wxEVT_COMMAND_MENU_SELECTED,(wxObjectEventFunction)&QuME_Frame::OnAbout);
 
-    //timer event function handler binding
-    //Connect(ID_REFRESHTIMER,wxEVT_TIMER,(wxObjectEventFunction)&QuME_Frame::UpdateGLWindow);
-
     Connect(ID_MENU_OPEN, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&QuME_Frame::OnOpenBSP);
-    Connect(ID_MENU_OPEN, wxEVT_UPDATE_UI, (wxObjectEventFunction)&QuME_Frame::OnUpdateBSPProcessing);
+    //Connect(ID_MENU_OPEN, wxEVT_UPDATE_UI, (wxObjectEventFunction)&QuME_Frame::OnUpdateBSPProcessing);
 
     Connect(ID_MENU_EXPORT, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&QuME_Frame::OnWavefrontExport);
-    Connect(ID_MENU_EXPORT, wxEVT_UPDATE_UI, (wxObjectEventFunction)&QuME_Frame::OnUpdateBrushExport);
+    //Connect(ID_MENU_EXPORT, wxEVT_UPDATE_UI, (wxObjectEventFunction)&QuME_Frame::OnUpdateBrushExport);
 
     Connect(ID_MENU_BRUSHES, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&QuME_Frame::OnBrushExport);
 
 
     Connect(ID_MENU_BASEDIR, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&QuME_Frame::OnSetBasedir);
-
-    //glContext = new wxGLContext(mainGLCanvas);
 
     //read in our configuration info
     this->configuration = new wxFileConfig(L"QuME", L"", wxFileName::GetCwd() + L"/QuME.cfg", L"", wxCONFIG_USE_LOCAL_FILE);
@@ -374,7 +270,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
 				QuME_PAK_File f;
 				f.pakFileName = pn;
 				f.LoadPAKFileInfo();
-				this->pakFiles.AppendIfUnique(f);
+				this->pakFiles.AddIfUnique(f);
 				cont = gDir.GetNext(&pakname);
 			}
 
@@ -382,7 +278,7 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
 			{
 				infoConsole->AppendText(pf->Data.pakFileName);
 				infoConsole->AppendText("\n");
-				pf->Data.dirEntryArrayCount = pf->Data.dirEntries.ToArray(pf->Data.dirEntryArray);
+				pf->Data.dirEntryList.ToArray(pf->Data.dirEntries);
 			}
 		}
 		else
@@ -394,17 +290,10 @@ QuME_Frame::QuME_Frame(wxWindow* parent,wxWindowID id)
     {
         infoConsole->AppendText(L"Game directory not set yet\nPlease set your Quake 2 baseq2 directory in \'Options...\'\n\n");
     }
-    this->bsp = nullptr;
-    this->BSPProcessingProgressDialog = nullptr;
-
-    //FaceExaminerDialog = nullptr;
 }
 
 QuME_Frame::~QuME_Frame()
 {
-    //(*Destroy(QuME_Frame)
-    //*)
-
     {
         wxCriticalSectionLocker locker(wxGetApp().CritSectThreads);
 
@@ -413,11 +302,8 @@ QuME_Frame::~QuME_Frame()
 
         if (count == 0)
         {
-            SAFE_DELETE(this->bsp);
-            this->bsp = nullptr;
 			SAFE_DELETE(this->configuration);
 			this->configuration = nullptr;
-			//SAFE_DELETE(this->glContext);
             return;
         }
 
@@ -425,26 +311,8 @@ QuME_Frame::~QuME_Frame()
     }
     wxGetApp().AllDone.Wait();
 
-    //Wait until all threads have exited before deleting BSP Data
-	SAFE_DELETE(this->bsp);
-	this->bsp = nullptr;
 	SAFE_DELETE(this->configuration);
 	this->configuration = nullptr;
-    //SAFE_DELETE(this->glContext);
-}
-
-bool QuME_Frame::ObjExportCanceled()
-{
-    wxCriticalSectionLocker lock(CritSecExportCanceled);
-
-    return exportCanceled;
-}
-
-bool QuME_Frame::BSPImportCanceled()
-{
-     wxCriticalSectionLocker lock(CritSecImportCanceled);
-
-     return importCanceled;
 }
 
 void QuME_Frame::OnQuit(wxCommandEvent& event)
@@ -456,7 +324,7 @@ void QuME_Frame::OnAbout(wxCommandEvent& event)
 {
     std::wstring msg = L"QuME v";
     msg += QUME_VERSION;
-    msg += L"\nBy J Thomas";
+    msg += L"\nBy J M Thomas";
     wxMessageBox(msg, L"About...");
 }
 
@@ -477,6 +345,46 @@ void QuME_Frame::OnSetBasedir(wxCommandEvent& event)
         }
         this->configuration->Flush(true);
         this->gameDir = DefaultPath;
+		wxDir gDir(this->gameDir);
+
+		if(gDir.HasFiles(L"*.pak"))
+		{
+			//new directory, so clear all .pak files
+			this->pakFiles.ClearList();
+			//find all the pak files, and add to pak list
+			for(wxUint64 i = 0; i < MAX_PAKS; i++)
+			{
+				std::wstring pakname = this->gameDir + L"pak" + std::to_wstring(i) + L".pak";
+				if(wxFile::Exists(pakname))
+				{
+					QuME_PAK_File f(pakname);
+					this->pakFiles.Add(f);
+				}
+			}
+			wxString pakname;
+			bool cont = gDir.GetFirst(&pakname, L"*.pak", wxDIR_FILES);
+			while(cont)
+			{
+				std::wstring pn = this->gameDir + pakname.ToStdWstring();
+				QuME_PAK_File f;
+				f.pakFileName = pn;
+				f.LoadPAKFileInfo();
+				this->pakFiles.AddIfUnique(f);
+				cont = gDir.GetNext(&pakname);
+			}
+
+			//list all found .pak files in console
+			for(ListItem<QuME_PAK_File>* pf = this->pakFiles.Head; pf !=nullptr; pf = pf->next)
+			{
+				infoConsole->AppendText(pf->Data.pakFileName);
+				infoConsole->AppendText("\n");
+				pf->Data.dirEntryList.ToArray(pf->Data.dirEntries);
+			}
+		}
+		else
+		{
+			infoConsole->AppendText(L"Directory has no pak files!\nTry another one!\n");
+		}
         infoConsole->AppendText(L"Base Directory Set to \'" + this->gameDir + L"\'\n\n");
     }
 }
@@ -497,26 +405,24 @@ void QuME_Frame::OnOpenBSP(wxCommandEvent& event)
     if (openFileDialog.ShowModal() == wxID_CANCEL)
         return;     // the user changed idea...
 
-    if(bsp != nullptr) delete bsp; //we're opening a new BSP file, dump old one
-    bsp = new QuME_BSP_Data();
-    bsp->baseDir = this->gameDir;
+    if(wxGetApp().bsp != nullptr) delete wxGetApp().bsp; //we're opening a new BSP file, dump old one
+    wxGetApp().bsp = new QuME_BSP_Data();
+    wxGetApp().bsp->baseDir = this->gameDir;
 
     menuExport->Enable(false);
     menuBrushes->Enable(false);
 
     infoConsole->SetValue(openFileDialog.GetFilename() + L"\n");
 
-    bsp->MapName = openFileDialog.GetFilename();
+    wxGetApp().bsp->MapName = openFileDialog.GetFilename();
 
-    QuME_BSP_Load* thread = new QuME_BSP_Load(this, bsp, std::wstring(openFileDialog.GetPath()));
+    QuME_BSP_Load* thread = new QuME_BSP_Load(this, wxGetApp().bsp, std::wstring(openFileDialog.GetPath()));
 
     if(thread->Create() != wxTHREAD_NO_ERROR)
     {
         errorbox.ShowModal();
         return;
     }
-
-    importCanceled = false;
 
     wxCriticalSectionLocker enter(wxGetApp().CritSectThreads);
     wxGetApp().Threads.Add(thread);
@@ -526,12 +432,12 @@ void QuME_Frame::OnOpenBSP(wxCommandEvent& event)
 
 void QuME_Frame::OnWavefrontExport(wxCommandEvent& event)
 {
-    std::wstring MapNameNoExt = bsp->MapName;
+    std::wstring MapNameNoExt = wxGetApp().bsp->MapName;
     ReplaceAll(&MapNameNoExt, L".bsp", L""); //strip off .bsp extension
 
     wxFileDialog saveFileDialog(this,
 								L"Export BSP to OBJ",
-								bsp->baseDir,
+								wxGetApp().bsp->baseDir,
 								MapNameNoExt + L".obj",
                                 L"OBJ files (*.obj)|*.obj",
                                 wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
@@ -545,16 +451,13 @@ void QuME_Frame::OnWavefrontExport(wxCommandEvent& event)
     std::wstring FullPath = mapFileName;
     ReplaceAll(&FullPath, L".obj", L"");
 
-    QuME_BSP_ObjExporter *thread = new QuME_BSP_ObjExporter(this, bsp, MapNameNoExt, FullPath);
+    QuME_BSP_ObjExporter *thread = new QuME_BSP_ObjExporter(this, wxGetApp().bsp, MapNameNoExt, FullPath);
 
     if ( thread->Create() != wxTHREAD_NO_ERROR )
     {
         errorbox.ShowModal();
         return;
     }
-
-    // thread is not running yet, no need for crit sect
-    exportCanceled = false;
 
     wxCriticalSectionLocker enter(wxGetApp().CritSectThreads);
     wxGetApp().Threads.Add(thread);
@@ -564,12 +467,12 @@ void QuME_Frame::OnWavefrontExport(wxCommandEvent& event)
 
 void QuME_Frame::OnBrushExport(wxCommandEvent& event)
 {
-    std::wstring MapNameNoExt = bsp->MapName;
+    std::wstring MapNameNoExt = wxGetApp().bsp->MapName;
     ReplaceAll(&MapNameNoExt, L".bsp", L""); //strip off .bsp extension
 
     wxFileDialog saveFileDialog(this,
 								L"Export BSP to OBJ",
-								bsp->baseDir,
+								wxGetApp().bsp->baseDir,
 								MapNameNoExt + L"_brushes.obj",
                                 L"OBJ files (*.obj)|*.obj",
                                 wxFD_SAVE|wxFD_OVERWRITE_PROMPT);
@@ -583,7 +486,7 @@ void QuME_Frame::OnBrushExport(wxCommandEvent& event)
     std::wstring FullPath = mapFileName;
     ReplaceAll(&FullPath, L".obj", L"");
 
-    QuME_BSP_Brush_Exporter *thread = new QuME_BSP_Brush_Exporter(this, bsp, MapNameNoExt, FullPath);
+    QuME_BSP_Brush_Exporter *thread = new QuME_BSP_Brush_Exporter(this, wxGetApp().bsp, MapNameNoExt, FullPath);
 
     if ( thread->Create() != wxTHREAD_NO_ERROR )
     {
@@ -591,211 +494,10 @@ void QuME_Frame::OnBrushExport(wxCommandEvent& event)
         return;
     }
 
-    // thread is not running yet, no need for crit sect
-    exportCanceled = false;
-
     wxCriticalSectionLocker enter(wxGetApp().CritSectThreads);
     wxGetApp().Threads.Add(thread);
 
     thread->Run();
-}
-
-//respond to progress messages from the .obj export thread
-void QuME_Frame::OnObjExportEvent(wxThreadEvent& event)
-{
-    if(this->ExportProgressDialog == nullptr)
-    {
-        ExportProgressDialog = new wxProgressDialog(L"Exporting BSP data ...",
-                L"",
-                100,
-                this,
-                0);
-    }
-
-    int n = event.GetInt();
-    if ( n == -1 ) //done exporting, close progress dialog
-    {
-        ExportProgressDialog->Close();
-        ExportProgressDialog = nullptr;
-
-        wxWakeUpIdle();
-    }
-    else if(n == -2) //error, close progress dialog and report
-    {
-        ExportProgressDialog->Close();
-        ExportProgressDialog = nullptr;
-
-        wxMessageBox(L"Error exporting .obj file!", L"Export Error!", 0, this);
-
-        wxWakeUpIdle();
-    }
-    else
-    {
-		if (!ExportProgressDialog->Update(n))
-		{
-			wxCriticalSectionLocker lock(CritSecExportCanceled);
-
-			exportCanceled = true;
-		}
-	}
-}
-
-void QuME_Frame::OnBrushExportEvent(wxThreadEvent& event)
-{
-    if(this->ExportProgressDialog == nullptr)
-    {
-        ExportProgressDialog = new wxProgressDialog(L"Exporting Brush data ...",
-                L"",
-                100,
-                this,
-                0);
-    }
-
-    int n = event.GetInt();
-    if ( n == -1 ) //done exporting, close progress dialog
-    {
-        ExportProgressDialog->Close();
-        ExportProgressDialog = nullptr;
-
-        wxWakeUpIdle();
-    }
-    else if(n == -2) //error, close progress dialog and report
-    {
-        ExportProgressDialog->Close();
-		ExportProgressDialog = nullptr;
-
-        wxMessageBox(L"Error exporting brushes!", L"Export Error!", 0, this);
-
-        wxWakeUpIdle();
-    }
-    else
-    {
-		if (!ExportProgressDialog->Update(n))
-		{
-			wxCriticalSectionLocker lock(CritSecExportCanceled);
-
-			exportCanceled = true;
-		}
-
-	}
-}
-
-void QuME_Frame::OnSpinFaceExamineChange(wxSpinEvent& event)
-{
-    wxUint32 i = spinFaceExamine->GetValue();
-    if(i >= bsp->Faces.Count)
-    {
-        spinFaceExamine->SetValue(bsp->Faces.Count);
-        i = bsp->Faces.Count;
-    }
-    QuME_BSP_Face* f = &bsp->Faces.Face[i];
-    QuME_BSP_Texture* t = &bsp->Textures.Texture[f->TextureInfo];
-    wxInt32* SEdge = bsp->SurfaceEdges.SurfaceEdge;
-    QuME_BSP_Edge* BSPEdges = bsp->Edges.EdgeArray;
-    if(f != nullptr)
-    {
-        infoConsole->AppendText(L"*-----------------------------*\n");
-        infoConsole->AppendText(L"Face #" + std::to_wstring(i) + L"\n");
-        infoConsole->AppendText(L"Plane #" + std::to_wstring(f->Plane) + L"\n");
-        infoConsole->AppendText(L"Plane side: " + std::to_wstring(f->PlaneSide) + L"\n");
-        infoConsole->AppendText(L"Edge count: " + std::to_wstring(f->EdgeCount) + L"\n");
-        infoConsole->AppendText(L"First edge index: " + std::to_wstring(f->FirstEdge) + L"\n");
-        for(wxInt32 j = 0; j < f->EdgeCount; j++)
-        {
-            wxUint32 firstEdge = f->FirstEdge;
-            QuME_BSP_Edge* vertindexes = &BSPEdges[SEdge[firstEdge + j]];
-            infoConsole->AppendText(std::to_wstring(vertindexes->a) + L" " + std::to_wstring(vertindexes->b) + L"\n");
-        }
-        for(wxUint32 j = 0; j < f->TriangleCount; j++)
-        {
-            infoConsole->AppendText(L"Triangle " + std::to_wstring(j) + L"\n");
-            for(wxInt32 k = 0; k < 3; k++)
-            {
-                infoConsole->AppendText(std::to_wstring(f->Triangle[j].v[k]) + L" ");
-            }
-            infoConsole->AppendText(L"\n");
-        }
-        infoConsole->AppendText(L"Texture Name: " + t->MaterialName + L"\n\n");
-    }
-}
-
-void QuME_Frame::OnSpinEntityExamineChange(wxSpinEvent& event)
-{
-    wxUint32 i = spinEntityToExamine->GetValue();
-    if(i >= bsp->Entities.EntityCount)
-    {
-        spinEntityToExamine->SetValue(0);
-        i = 0;
-    }
-
-    infoConsole->AppendText(L"*-----------------------------*\n");
-    infoConsole->AppendText(L"Entity #" + std::to_wstring(i) + L"\n");
-    for(wxUint32 j = 0; j < bsp->Entities.EntityArray[i].KeyCount; j++)
-    {
-        infoConsole->AppendText(L"\"" + bsp->Entities.EntityArray[i].KeyArray[j].KeyName);
-        infoConsole->AppendText(L"\" \"" + bsp->Entities.EntityArray[i].KeyArray[j].KeyValue + L"\"\n");
-    }
-    infoConsole->AppendText(L"\n");
-
-}
-
-void QuME_Frame::OnSpinTextureExamineChange(wxSpinEvent& event)
-{
-    wxUint32 i = spinTextureExamine->GetValue();
-    if(i >= this->bsp->Textures.Count)
-    {
-        spinTextureExamine->SetValue(0);
-        i = 0;
-    }
-    QuME_BSP_Texture* t = &bsp->Textures.Texture[i];
-    if(t != nullptr)
-    {
-        infoConsole->AppendText(L"*-----------------------------*\n");
-        infoConsole->AppendText(L"Texture Name: " + t->MaterialName + L"\n");
-        infoConsole->AppendText(L"Resolution: X = " + std::to_wstring(t->xRes));
-        infoConsole->AppendText(L" Y = " + std::to_wstring(t->yRes) + L"\n\n");
-    }
-}
-
-//this sets all UI objects to disabled if progress dialog exists, to simulate modal behavior across threads
-void QuME_Frame::OnUpdateBSPProcessing(wxUpdateUIEvent& event)
-{
-    //event.Enable( BSPProcessingProgressDialog == nullptr );
-}
-
-void QuME_Frame::OnUpdateObjExport(wxUpdateUIEvent& event)
-{
-    //event.Enable( ExportProgressDialog == nullptr );
-}
-
-void QuME_Frame::OnUpdateBrushExport(wxUpdateUIEvent& event)
-{
-    //event.Enable( ExportProgressDialog == nullptr );
-}
-
-void QuME_Frame::OnBSPProcessingEvent(wxThreadEvent& event)
-{
-    if(this->BSPProcessingProgressDialog == nullptr)
-    {
-        BSPProcessingProgressDialog = new wxProgressDialog(L"Processing BSP data ...",
-                L"",
-                100,
-                this,
-                0);
-    }
-
-    int n = event.GetInt();
-    if(n == -1)
-    {
-        BSPProcessingProgressDialog->Destroy();
-        //BSPProcessingProgressDialog = nullptr;
-
-        wxWakeUpIdle();
-    }
-    else
-    {
-        BSPProcessingProgressDialog->Update(n);
-    }
 }
 
 void QuME_Frame::OnBSPImportEvent(wxThreadEvent& event)
@@ -808,14 +510,15 @@ void QuME_Frame::OnBSPImportEvent(wxThreadEvent& event)
         menuExport->Enable(true);
         menuBrushes->Enable(true);
         spinFaceExamine->Enable();
-        spinFaceExamine->SetRange(0, this->bsp->Faces.Count);
+        spinFaceExamine->SetRange(0, wxGetApp().bsp->BSP_Faces.Faces.Count - 1);
         spinEntityToExamine->Enable();
-        spinEntityToExamine->SetRange(0, this->bsp->Entities.EntityCount);
+        spinEntityToExamine->SetRange(0, wxGetApp().bsp->BSP_Entities.Entities.Count - 1);
         spinTextureExamine->Enable();
-        spinTextureExamine->SetRange(0, this->bsp->Textures.Count);
+        spinTextureExamine->SetRange(0, wxGetApp().bsp->BSP_Textures.TextureInfo.Count - 1);
     }
     else if((event.GetString().compare(L"Load Failed!\n\n") == 0) || (event.GetString().compare(L"Load Canceled!\n\n") == 0))
     {
+    	//file load failed, disable everything
         spinFaceExamine->Disable();
         spinFaceExamine->SetRange(0, 0);
         spinEntityToExamine->Disable();
@@ -828,60 +531,135 @@ void QuME_Frame::OnBSPImportEvent(wxThreadEvent& event)
     }
 }
 
+void QuME_Frame::OnBSPProcessingEvent(wxThreadEvent& event)
+{
+    int n = event.GetInt();
+    if(n == -1)
+    {
+    	this->ProgressBar->SetValue(100);
+
+        wxWakeUpIdle();
+    }
+    else
+    {
+    	if(n > 100) n = 100;
+    	this->ProgressBar->SetValue(n);
+    }
+}
+
+//respond to progress messages from the .obj export thread
+void QuME_Frame::OnObjExportEvent(wxThreadEvent& event)
+{
+    int n = event.GetInt();
+    if ( n == -1 ) //done exporting, close progress dialog
+    {
+    	this->ProgressBar->SetValue(100);
+
+        wxWakeUpIdle();
+    }
+    else if(n == -2) //error, close progress dialog and report
+    {
+    	this->ProgressBar->SetValue(0);
+
+        wxMessageBox(L"Error exporting .obj file!", L"Export Error!", 0, this);
+
+        wxWakeUpIdle();
+    }
+    else
+    {
+    	if(n > 100) n = 100;
+    	this->ProgressBar->SetValue(n);
+	}
+}
+
+void QuME_Frame::OnBrushExportEvent(wxThreadEvent& event)
+{
+    int n = event.GetInt();
+    if ( n == -1 ) //done exporting, close progress dialog
+    {
+    	this->ProgressBar->SetValue(100);
+
+        wxWakeUpIdle();
+    }
+    else if(n == -2) //error, close progress dialog and report
+    {
+    	this->ProgressBar->SetValue(0);
+
+        wxMessageBox(L"Error exporting brushes!", L"Export Error!", 0, this);
+
+        wxWakeUpIdle();
+    }
+    else
+    {
+    	if(n > 100) n = 100;
+    	this->ProgressBar->SetValue(n);
+	}
+}
+
+void QuME_Frame::OnSpinFaceExamineChange(wxSpinEvent& event)
+{
+    wxInt32 i = spinFaceExamine->GetValue();
+    QuME_BSP_Face* f = &wxGetApp().bsp->BSP_Faces.Faces[i];
+    QuME_BSP_Texture* tex = &wxGetApp().bsp->BSP_Textures.TextureInfo[f->TextureInfo];
+    if(f != nullptr)
+    {
+        infoConsole->AppendText(L"*-----------------------------*\n");
+        infoConsole->AppendText(L"Face #" + std::to_wstring(i) + L"\n");
+        infoConsole->AppendText(L"Plane #" + std::to_wstring(f->Plane) + L"\n");
+        infoConsole->AppendText(L"Plane side: " + std::to_wstring(f->PlaneSide) + L"\n");
+        infoConsole->AppendText(L"Edge count: " + std::to_wstring(f->EdgeCount) + L"\n");
+        infoConsole->AppendText(L"First edge index: " + std::to_wstring(f->FirstEdge) + L"\n");
+        for(wxInt32 j = 0; j < f->EdgeCount; j++)
+        {
+            wxUint32 firstEdge = f->FirstEdge;
+            wxInt32 FIndex = wxGetApp().bsp->BSP_SurfaceEdges.SurfaceEdgeIndices[firstEdge + j];
+            wxUint32 VIndex = ((FIndex > 0) ? wxGetApp().bsp->BSP_Edges.Edges[FIndex].a : wxGetApp().bsp->BSP_Edges.Edges[-FIndex].b);
+            infoConsole->AppendText(std::to_wstring(VIndex) + L"\n");
+        }
+        for(wxUint32 j = 0; j < f->Triangles.Count; j++)
+        {
+            infoConsole->AppendText(L"Triangle " + std::to_wstring(j) + L"\n");
+            for(wxInt32 k = 0; k < 3; k++)
+            {
+                infoConsole->AppendText(std::to_wstring(f->Triangles[j].Vertex[k].VertexIndex) + L" ");
+            }
+            infoConsole->AppendText(L"\n");
+        }
+        infoConsole->AppendText(L"Texture Name: " + tex->MaterialName + L"\n\n");
+    }
+}
+
+void QuME_Frame::OnSpinEntityExamineChange(wxSpinEvent& event)
+{
+    wxInt32 i = spinEntityToExamine->GetValue();
+    infoConsole->AppendText(L"*-----------------------------*\n");
+    infoConsole->AppendText(L"Entity #" + std::to_wstring(i) + L"\n");
+    for(wxUint32 j = 0; j < wxGetApp().bsp->BSP_Entities.Entities[i].KeyCount; j++)
+    {
+        infoConsole->AppendText(L"\"" + wxGetApp().bsp->BSP_Entities.Entities[i].KeyArray[j].KeyName + L"\" ");
+        infoConsole->AppendText(L"\"" + wxGetApp().bsp->BSP_Entities.Entities[i].KeyArray[j].KeyValue + L"\"\n");
+    }
+    infoConsole->AppendText(L"\n");
+
+}
+
+void QuME_Frame::OnSpinTextureExamineChange(wxSpinEvent& event)
+{
+    wxInt32 i = spinTextureExamine->GetValue();
+    QuME_BSP_Texture* tex = &wxGetApp().bsp->BSP_Textures.TextureInfo[i];
+    if(tex != nullptr)
+    {
+        infoConsole->AppendText(L"*-----------------------------*\n");
+        infoConsole->AppendText(L"Texture Name: " + tex->MaterialName + L"\n");
+        infoConsole->AppendText(L"Resolution: X = " + std::to_wstring(tex->xRes));
+        infoConsole->AppendText(L" Y = " + std::to_wstring(tex->yRes) + L"\n");
+        infoConsole->AppendText(L"Flags: " + std::to_wstring(tex->Flags) + L"\n");
+        infoConsole->AppendText(L"Value: " + std::to_wstring(tex->Value) + L"\n\n");
+    }
+}
+
 //method to allow threads to write to console window safely
 void QuME_Frame::OnConsoleLogEvent(wxThreadEvent& event)
 {
     infoConsole->AppendText(event.GetString());
 }
-
-//timer based GLCanvas refresh + other things
-void QuME_Frame::UpdateGLWindow(wxTimerEvent& event)
-{
-    if(glContext->SetCurrent(*mainGLCanvas))
-    {
-        glEnable(GL_DEPTH_TEST); /* enable depth buffering */
-        glDepthFunc(GL_LESS);    /* pedantic, GL_LESS is the default */
-        glClearDepth(1.0);       /* pedantic, 1.0 is the default */
-        /* frame buffer clears should be to black */
-        glClearColor(0.0, 0.0, 0.0, 0.0);
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glFrustum(-1.0, 1.0, -1.0, 1.0, 1.0, 10000.0);
-
-        glMatrixMode(GL_MODELVIEW);
-
-        /* reset modelview matrix to the identity matrix */
-        glLoadIdentity();
-
-        /* move the camera back */
-        glTranslatef(0.0, 0.0, -400.0);
-
-        xRot = SliderXRotation->GetValue();
-        yRot = SliderYRotation->GetValue();
-        zRot = SliderZRotation->GetValue();
-
-        /* rotate by X, Y, and Z angles */
-        glRotatef(xRot, 0.1, 0.0, 0.0);
-        glRotatef(yRot, 0.0, 0.1, 0.0);
-        glRotatef(zRot, 0.0, 0.0, 1.0);
-
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        if(menuExport->IsEnabled())
-        {
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.5, 1.0, 1.0);
-            //for(wxUint32 i = 0; i < bsp->BrushModels.Count; i++)
-            {
-
-            }
-            glEnd();
-
-        }
-
-        mainGLCanvas->SwapBuffers();
-
-    }
-}
-

@@ -8,10 +8,7 @@ class QuME_Line
 {
 public:
     QuME_Line();
-    QuME_Line(QuME_Vector& start, QuME_Vector& end) :Origin(start), Direction(end - start)
-    {
-        Direction.normalize();
-    }
+    QuME_Line(QuME_Vector& line_start, QuME_Vector& line_end);
     ~QuME_Line();
 
     wxFloat64 distanceto(QuME_Vector& in);

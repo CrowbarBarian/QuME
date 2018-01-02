@@ -4,7 +4,8 @@
 #include "QuME_Common.h"
 #include "QuME_Vector.h"
 #include "QuME_Plane.h"
-#include "QuME_Arrays.h"
+#include "QuME_Lists.h"
+//#include "QuME_Arrays.h"
 
 #define Q2_BSP_PLANE_DATA_SIZE 20
 
@@ -21,9 +22,7 @@ public:
     ~QuME_BSP_Planes();
     bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 lumpLength);
 
-    //wxUint32 Count;
-    //QuME_BSP_Plane* BSPPlane;
-    QuME_Array<QuME_BSP_Plane> BSPPlaneArray;
+    QuME_Array<QuME_BSP_Plane> Planes;
 };
 
 #endif // QUME_BSP_PLANES_H

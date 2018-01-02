@@ -14,7 +14,7 @@ QuME_BSP_Load::QuME_BSP_Load(QuME_Frame* frame,
 							:BSPFileName(FileName)
 {
     Frame = frame;
-    Data = BSPData;
+    bsp = BSPData;
     FileError = false;
 }
 
@@ -53,8 +53,7 @@ wxThread::ExitCode QuME_BSP_Load::Entry()
 
     FileError = !input_stream.IsOk();
 
-    wxCriticalSectionLocker lock(Frame->CritSecBSP);
-    wxCriticalSectionLocker lock2(Frame->CritSecImportCanceled);
+    wxCriticalSectionLocker lock(wxGetApp().CritSecBSP);
 
     //ternary operator "?:" used to select correct string response
     event.SetString(FileError ? L"File Open Error!\n" : L"Loading Header...\n");
@@ -62,111 +61,102 @@ wxThread::ExitCode QuME_BSP_Load::Entry()
     wxQueueEvent(Frame, event.Clone());
 
     //this if(!FileError) structure is used to chain loading sections based on the previous result of last file operation
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadHeader(&input_stream);
+        FileError = !bsp->LoadHeader(&input_stream);
         event.SetString(FileError ? L"Header Load Error!\n" : L"Loading Lump Table...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadLumpTable(&input_stream);
+        FileError = !bsp->LoadLumpTable(&input_stream);
         event.SetString(FileError ? L"Lump Table Load Error!\n" : L"Loading Entities...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadEntities(&input_stream);
+        FileError = !bsp->LoadEntities(&input_stream);
         event.SetString(FileError ? L"Entities Load Error!\n" : L"Loading Vertices...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadVertices(&input_stream);
+        FileError = !bsp->LoadVertices(&input_stream);
         event.SetString(FileError ? L"Vertices Load Error!\n" : L"Loading Faces...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadFaces(&input_stream);
+        FileError = !bsp->LoadFaces(&input_stream);
         event.SetString(FileError ? L"Faces Load Error!\n" : L"Loading Surface Edges...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadSurfaceEdges(&input_stream);
+        FileError = !bsp->LoadSurfaceEdges(&input_stream);
         event.SetString(FileError ? L"Surface Edges Load Error!\n" : L"Loading Edges...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadEdges(&input_stream);
+        FileError = !bsp->LoadEdges(&input_stream);
         event.SetString(FileError ? L"Edges Load Error!\n" : L"Loading Texture Info...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadTextures(&input_stream);
+        FileError = !bsp->LoadTextures(&input_stream);
         event.SetString(FileError ?
-                        L"Texture Info Load Error!\nError at file: " + Data->Textures.FaultTexture + L"\n\n"
+                        L"Texture Info Load Error!\nError at file: " + bsp->BSP_Textures.FaultTexture + L"\n\n"
                         : L"Loading BSP Models...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadBrushModels(&input_stream);
+        FileError = !bsp->LoadBrushModels(&input_stream);
         event.SetString(FileError ? L"BSP Models Load Error!\n" : L"Loading Plane Data...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadPlanes(&input_stream);
+        FileError = !bsp->LoadPlanes(&input_stream);
         event.SetString(FileError ? L"BSP Planes Load Error!\n" : L"Loading Brushes...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadBrushes(&input_stream);
+        FileError = !bsp->LoadBrushes(&input_stream);
         event.SetString(FileError ? L"Brush Load Error!\n" : L"Loading Brush Sides...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        FileError = !Data->LoadBrushSides(&input_stream);
+        FileError = !bsp->LoadBrushSides(&input_stream);
         event.SetString(FileError ? L"Brush Side Load Error!\n" : L"Setting up BSP data...\n");
         wxQueueEvent(Frame, event.Clone());
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        Data->SetupBSPData(Frame);
-    }
-    else
-    {
-        //if error, close progress dialog
-        wxThreadEvent progressevent(wxEVT_THREAD, BSPPROCESSING_EVENT);
-        progressevent.SetInt(-1);
-        wxQueueEvent(Frame, progressevent.Clone());
+        bsp->SetupBSPData(Frame);
     }
 
-    if((!FileError) && (!Frame->BSPImportCanceled()) && (!TestDestroy()))
+    if((!FileError) && (!TestDestroy()))
     {
-        //wxThreadEvent event(wxEVT_THREAD, BSPPROCESSING_EVENT);
-        //event.SetInt(-1);
         event.SetString(L"Processing Brushes...\n");
         wxQueueEvent(Frame, event.Clone());
-        Data->ProcessBrushes(Frame);
+        bsp->ProcessBrushes(Frame);
     }
 
     //this message is used to flag success/failure in the event listener in the main thread
@@ -174,7 +164,7 @@ wxThread::ExitCode QuME_BSP_Load::Entry()
     {
         event.SetString(L"Load Error!\n\n");
     }
-    else if(Frame->BSPImportCanceled() || TestDestroy())
+    else if(TestDestroy())
     {
         event.SetString(L"Load Canceled!\n\n");
     }

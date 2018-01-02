@@ -9,6 +9,7 @@ public:
     QuME_Vector();
     QuME_Vector(wxFloat64 x, wxFloat64 y, wxFloat64 z);
     QuME_Vector(const QuME_Vector& o);
+    QuME_Vector& operator=(const QuME_Vector& o);
     QuME_Vector& operator+=(const wxFloat64 o);
     QuME_Vector& operator+=(const QuME_Vector& o);
     QuME_Vector& operator-=(const wxFloat64 o);
@@ -26,10 +27,7 @@ public:
     QuME_Vector operator/(const wxFloat64 o);
     QuME_Vector operator/(const QuME_Vector& o);
     bool operator==(const QuME_Vector& o);
-    //test for equality by using a slop factor
-    //bool EqualsEpsilon(const QuME_Vector& o, wxFloat64 epsilon);
     bool operator!=(const QuME_Vector& o);
-    //wxUint32 gethash();
     QuME_Vector cross(const QuME_Vector& o);
     wxFloat64 dot(const QuME_Vector& o);
     wxFloat64 length2();

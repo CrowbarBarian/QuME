@@ -1,3 +1,10 @@
+/***************************************************************
+ * Name:		QuME_BSP_Brush_Exporter.h
+ * Purpose:		Defines for the brush exporter class
+ * Author:		J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * Copyright:	J M Thomas (Crowbarbarian) (crowbar.barbarian@gmail.com)
+ * License:		GPL v3
+ **************************************************************/
 #ifndef QUME_BSP_BRUSH_EXPORTER_H
 #define QUME_BSP_BRUSH_EXPORTER_H
 
@@ -35,7 +42,7 @@ public:
     std::wstring StrippedFileName;
     std::wstring FullPathNoExt;
     bool FileError;
-    QuME_BSP_Data* Data;
+    QuME_BSP_Data* bsp;
 };
 
 #endif // QUME_BSP_BRUSH_EXPORTER_H

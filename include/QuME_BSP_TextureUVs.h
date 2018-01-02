@@ -24,6 +24,30 @@ public:
 		U = 0.0;
 		V = 0.0;
 	}
+	QuME_UV(QuME_UV& o)
+	{
+		U = o.U;
+		V = o.V;
+	}
+	QuME_UV& operator=(QuME_UV& o)
+	{
+		U = o.U;
+		V = o.V;
+		return *this;
+	}
+	bool operator==(QuME_UV& o) //use epsilon compare...
+	{
+		if(fabs(this->length2() - o.length2()) > QUME_UV_EPSILON * QUME_UV_EPSILON) return false;
+		return true;
+	}
+	wxFloat64 length2()
+	{
+		return this->U * this->U + this->V * this->V;
+	}
+	wxFloat64 length()
+	{
+		return std::sqrt(this->length2());
+	}
 
 	wxFloat64 U;
 	wxFloat64 V;
@@ -35,9 +59,8 @@ public:
     QuME_BSP_TextureUVs();
     ~QuME_BSP_TextureUVs();
 
-    QuME_LinkedList<QuME_UV> UVs;
-    QuME_UV* UVArray;
-    wxUint32 UVArrayCount;
+    QuME_LinkedList<QuME_UV> UVList;
+    QuME_Array<QuME_UV> UVs;
 };
 
 #endif // QuME_BSP_TEXTUREUVS_H

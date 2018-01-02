@@ -35,7 +35,7 @@ public:
     std::wstring StrippedFileName;
     std::wstring FullPathNoExt;
     bool FileError;
-    QuME_BSP_Data* Data;
+    QuME_BSP_Data* bsp;
 };
 
 #endif // QuME_BSP_WORKERTHREAD_H_INCLUDED

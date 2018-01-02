@@ -15,7 +15,7 @@ QuME_BSP_ObjExporter::QuME_BSP_ObjExporter(QuME_Frame* frame,
                                            : wxThread(), StrippedFileName(BaseFileName), FullPathNoExt(FullPath)
 {
     Frame = frame;
-    Data = BSPData;
+    bsp = BSPData;
     FileError = false;
 }
 
@@ -52,22 +52,18 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
     wxThreadEvent event(wxEVT_THREAD, OBJEXPORT_EVENT);
     wxThreadEvent logevent(wxEVT_THREAD, CONSOLELOG_EVENT);
 
-    wxCriticalSectionLocker lock(Frame->CritSecBSP);
+    wxCriticalSectionLocker lock(wxGetApp().CritSecBSP);
 
-    //Pointer to BSP Texture array
-    QuME_BSP_Texture* tex = Data->Textures.Texture;
-
-    QuME_Vector* Vertexes = Data->Vertices.VertexArray;
 
     QuME_UniqueStrings UniqueMaterialNames;
 
     //Count how many total items we will export
-    wxInt32 ItemCount = Data->Textures.Count;
-    ItemCount += Data->Vertices.VertexCount;
-    ItemCount += Data->TextureUVs.UVArrayCount;
-    for(wxUint32 i = 0; i < Data->BrushModels.Count; i++)
+    wxInt32 ItemCount = bsp->BSP_Textures.TextureInfo.Count;
+    ItemCount += bsp->BSP_Vertices.Vertices.Count;
+    ItemCount += bsp->BSP_TextureUVs.UVs.Count;
+    for(wxUint32 i = 0; i < bsp->BSP_BrushModels.BrushModels.Count; i++)
     {
-        ItemCount += Data->BrushModels.BrushModel[i].NumFaces;
+        ItemCount += bsp->BSP_BrushModels.BrushModels[i].NumFaces;
     }
     wxInt32 CurrentItemCount = 0;
 
@@ -89,7 +85,7 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
 
     wxInt32 updateOld = 0;
 
-    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->Textures.Count)); i++)
+    for(wxUint32 i = 0; ((!FileError) && (!TestDestroy()) && (i < bsp->BSP_Textures.TextureInfo.Count)); i++)
     {
         CurrentItemCount++;
 
@@ -102,7 +98,7 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
 			updateOld = currentProgress;
 		}
 
-        std::wstring MatName = tex[i].MaterialName;
+        std::wstring MatName = bsp->BSP_Textures.TextureInfo[i].MaterialName;
 
         if(UniqueMaterialNames.IsUnique(MatName)) //only write out materials that haven't been written out before
         {
@@ -118,8 +114,8 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
             *outmtl << L"Ns 100\n";
             *outmtl << L"Tf 1 1 1\n";
             *outmtl << L"d 1.0\n";
-            *outmtl << L"map_Ka " << Data->baseDir << L"textures/" << tex[i].MaterialName << L".jpg\n";
-            *outmtl << L"map_Kd " << Data->baseDir << L"textures/" << tex[i].MaterialName << L".jpg\n\n";
+            *outmtl << L"map_Ka " << bsp->baseDir << L"textures/" << bsp->BSP_Textures.TextureInfo[i].MaterialName << L".jpg\n";
+            *outmtl << L"map_Kd " << bsp->baseDir << L"textures/" << bsp->BSP_Textures.TextureInfo[i].MaterialName << L".jpg\n\n";
         }
     }
 
@@ -144,10 +140,9 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
     *outstr << L"mtllib " << this->StrippedFileName << L".mtl\n";
 
     //dump all vertices to file first
-    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->Vertices.VertexCount)); i++)
+    for(wxUint32 i = 0; ((!FileError) && (!TestDestroy()) && (i < bsp->BSP_Vertices.Vertices.Count)); i++)
     {
         CurrentItemCount++;
-        //std::cout << CurrentItemCount << std::endl;
 
         //Message Main thread about progress
         wxInt32 currentProgress = CurrentItemCount * 100 / ItemCount;
@@ -158,9 +153,9 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
 			updateOld = currentProgress;
 		}
 
-        *outstr << L"v " << Vertexes[i].x * -QUME_EXPORTSCALEFACTOR;
-        *outstr << L" " << Vertexes[i].z * QUME_EXPORTSCALEFACTOR;
-        *outstr << L" " << Vertexes[i].y * QUME_EXPORTSCALEFACTOR << L"\n";
+        *outstr << L"v " << bsp->BSP_Vertices.Vertices[i].x * -QUME_EXPORTSCALEFACTOR;
+        *outstr << L" " << bsp->BSP_Vertices.Vertices[i].z * QUME_EXPORTSCALEFACTOR;
+        *outstr << L" " << bsp->BSP_Vertices.Vertices[i].y * QUME_EXPORTSCALEFACTOR << L"\n";
     }
 
     *outstr << L"\n";
@@ -169,7 +164,7 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
     wxQueueEvent(Frame, logevent.Clone());
 
     //now dump all of the UV coordinates
-    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->TextureUVs.UVArrayCount)); i++)
+    for(wxUint32 i = 0; ((!FileError) && (!TestDestroy()) && (i < bsp->BSP_TextureUVs.UVs.Count)); i++)
     {
         CurrentItemCount++;
 
@@ -182,7 +177,7 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
 			updateOld = currentProgress;
 		}
 
-        *outstr << L"vt " << Data->TextureUVs.UVArray[i].U << " " << Data->TextureUVs.UVArray[i].V << "\n";
+        *outstr << L"vt " << bsp->BSP_TextureUVs.UVs[i].U << " " << bsp->BSP_TextureUVs.UVs[i].V << "\n";
     }
 
     *outstr << L"\n";
@@ -191,9 +186,9 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
     wxQueueEvent(Frame, logevent.Clone());
 
     //loop through all the map's brush models and export one by one
-    for(wxUint32 i = 0; ((!FileError) && (!Frame->ObjExportCanceled()) && (!TestDestroy()) && (i < Data->BrushModels.Count)); i++)
+    for(wxUint32 i = 0; ((!FileError) && (!TestDestroy()) && (i < bsp->BSP_BrushModels.BrushModels.Count)); i++)
     {
-        QuME_BSP_BrushModel* BrushModel = &Data->BrushModels.BrushModel[i];
+        QuME_BSP_BrushModel* BrushModel = &bsp->BSP_BrushModels.BrushModels[i];
         wxInt32 FirstFace = BrushModel->FirstFace;
 
         logevent.SetString(L"Exporting Object #" + std::to_string(i) + L"\n");
@@ -219,12 +214,11 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
 				updateOld = currentProgress;
 			}
 
-            QuME_BSP_Face* CurrentFace = &Data->Faces.Face[FirstFace + j];
+            QuME_BSP_Face* CurrentFace = &bsp->BSP_Faces.Faces[FirstFace + j];
             wxUint32 TexIndex = CurrentFace->TextureInfo;
 
-            std::wstring MatName = tex[TexIndex].MaterialName;
+            std::wstring MatName = bsp->BSP_Textures.TextureInfo[TexIndex].MaterialName;
             ReplaceAll(&MatName, L"/", L"$");
-            //MatName.Replace(L"/", L"$", true);
 
             if(i == 0)
             {
@@ -233,13 +227,13 @@ wxThread::ExitCode QuME_BSP_ObjExporter::Entry()
 
             *outstr << L"usemtl " << MatName << L"\n";
 
-            for(wxUint32 k = 0; k < CurrentFace->TriangleCount; k++)
+            for(wxUint32 k = 0; k < CurrentFace->Triangles.Count; k++)
             {
-                QuME_BSP_Triangle* t = CurrentFace->Triangle;
+                QuME_Triangle tri = CurrentFace->Triangles[k];
                 *outstr << L"f ";
                 for(wxUint32 l = 0; l < 3; l++)
                 {
-                    *outstr << t[k].v[2 - l] + 1 << "/" << t[k].uv[2 - l] + 1 << " ";
+                	*outstr << tri.Vertex[2 - l].VertexIndex + 1 << "/" << tri.Vertex[2 - l].UVIndex + 1 << L" ";
                 }
                 *outstr << L"\n";
             }

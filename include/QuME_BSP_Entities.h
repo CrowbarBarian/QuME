@@ -4,8 +4,6 @@
 #include "QuME_Common.h"
 #include "QuME_Lists.h"
 
-#include "QuME_BSP_Entity.h"
-
 class QuME_KeyPair
 {
 public:
@@ -26,9 +24,9 @@ class QuME_Entity
 {
 public:
 	QuME_Entity();
-	QuME_Entity(const QuME_Entity& o);
+	QuME_Entity(QuME_Entity& o);
 
-	QuME_Entity& operator=(const QuME_Entity& o);
+	QuME_Entity& operator=(QuME_Entity& o);
 
 	~QuME_Entity();
 
@@ -48,13 +46,9 @@ public:
     ~QuME_BSP_Entities();
     bool ParseEntities(wxUint8* buffer, wxUint32 length);
     bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length);
-    //wxInt32 ParseKeyPair(wxUint8* buffer, wxUint32& currentIndex, wxUint32 length;
-    //bool ParseEntities(wxUint8* buffer[], wxUint32 length);
     void DebugDump(wxTextOutputStream& out);
 
-    wxUint32 EntityCount;
-    //QuME_BSP_EntList* EntList;
-    QuME_Entity* EntityArray;
+    QuME_Array<QuME_Entity> Entities;
     QuME_LinkedList<QuME_Entity> EntityList;
 };
 

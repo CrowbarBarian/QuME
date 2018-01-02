@@ -21,7 +21,7 @@ public:
     QuME_Frame* Frame;
     std::wstring BSPFileName; //The actual file we'll be opening
     bool FileError; //set if a file read error happens
-    QuME_BSP_Data* Data; //the BSP class instance we'll be loading data into
+    QuME_BSP_Data* bsp; //the BSP class instance we'll be loading data into
 };
 
 #endif // QuME_BSP_LOAD_H

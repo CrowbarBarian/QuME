@@ -24,9 +24,17 @@ QuME_Vector::QuME_Vector(wxFloat64 inx, wxFloat64 iny, wxFloat64 inz)
 
 QuME_Vector::QuME_Vector(const QuME_Vector& o)
 {
-    x = o.x;
-    y = o.y;
-    z = o.z;
+    this->x = o.x;
+    this->y = o.y;
+    this->z = o.z;
+}
+
+QuME_Vector& QuME_Vector::operator=(const QuME_Vector& o)
+{
+    this->x = o.x;
+    this->y = o.y;
+    this->z = o.z;
+    return *this;
 }
 
 QuME_Vector& QuME_Vector::operator+=(const wxFloat64 o)

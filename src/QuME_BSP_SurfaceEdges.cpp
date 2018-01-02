@@ -10,22 +10,14 @@
 
 QuME_BSP_SurfaceEdges::QuME_BSP_SurfaceEdges()
 {
-    //ctor
-    this->Count = 0;
-    this->SurfaceEdge = nullptr;
 }
 
 QuME_BSP_SurfaceEdges::~QuME_BSP_SurfaceEdges()
 {
-    //dtor
-    this->Count = 0;
-    if(this->SurfaceEdge != nullptr) delete[] this->SurfaceEdge;
 }
 
 bool QuME_BSP_SurfaceEdges::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length)
 {
-    this->Count = length / 4;
-
     wxDataInputStream* binData = new wxDataInputStream( *infile );
 
     if(!binData->IsOk())
@@ -40,16 +32,11 @@ bool QuME_BSP_SurfaceEdges::LoadLump(wxFileInputStream* infile, wxUint32 offset,
         return false;
     }
 
-    this->SurfaceEdge = new wxInt32[this->Count];
-    if(this->SurfaceEdge == nullptr)
-    {
-        delete binData;
-        return false;
-    }
+    this->SurfaceEdgeIndices.Allocate(length / QUME_BSP_SURF_EDGE_DATA_SIZE);
 
-    for(wxUint32 i = 0; i < this->Count; i++)
+    for(wxUint32 i = 0; i < this->SurfaceEdgeIndices.Count; i++)
     {
-        this->SurfaceEdge[i] = binData->Read32();
+        this->SurfaceEdgeIndices[i] = binData->Read32();
     }
 
     if(!binData->IsOk())
@@ -65,9 +52,9 @@ bool QuME_BSP_SurfaceEdges::LoadLump(wxFileInputStream* infile, wxUint32 offset,
 void QuME_BSP_SurfaceEdges::DebugDump(wxTextOutputStream& out)
 {
     out << L"Surface edge indices:\n";
-    for(wxUint32 i = 0; i < this->Count; i++)
+    for(wxUint32 i = 0; i < this->SurfaceEdgeIndices.Count; i++)
     {
-        out << L"Surface Edge #" << i << ": " << this->SurfaceEdge[i] << L"\n";
+        out << L"Surface Edge #" << i << ": " << this->SurfaceEdgeIndices[i] << L"\n";
     }
     out << L"\n-------------------------------------------\n";
 }

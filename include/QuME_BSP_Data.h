@@ -54,78 +54,78 @@ public:
     bool LoadHeader(wxFileInputStream* infile);
     bool LoadLumpTable(wxFileInputStream* infile)
     {
-        return LumpTable.LoadLumps(infile, this->GetLumpTableOffset(this->BSPVersion));
+        return BSP_LumpTable.LoadLumps(infile, this->GetLumpTableOffset(this->BSPVersion));
     }
 
     bool LoadEntities(wxFileInputStream* infile)
     {
-        return this->Entities.LoadLump(infile,
-                                   this->LumpTable.Lump[LUMP_ENTITIES].Offset,
-                                   this->LumpTable.Lump[LUMP_ENTITIES].Length);
+        return this->BSP_Entities.LoadLump(infile,
+                                   this->BSP_LumpTable.Lump[LUMP_ENTITIES].Offset,
+                                   this->BSP_LumpTable.Lump[LUMP_ENTITIES].Length);
     }
 
     bool LoadVertices(wxFileInputStream* infile)
     {
-        return this->Vertices.LoadLump(infile,
-                                   this->LumpTable.Lump[LUMP_VERTICES].Offset,
-                                   this->LumpTable.Lump[LUMP_VERTICES].Length);
+        return this->BSP_Vertices.LoadLump(infile,
+                                   this->BSP_LumpTable.Lump[LUMP_VERTICES].Offset,
+                                   this->BSP_LumpTable.Lump[LUMP_VERTICES].Length);
     }
 
     bool LoadFaces(wxFileInputStream* infile)
     {
-        return this->Faces.LoadLump(infile,
-                                this->LumpTable.Lump[LUMP_FACES].Offset,
-                                this->LumpTable.Lump[LUMP_FACES].Length);
+        return this->BSP_Faces.LoadLump(infile,
+                                this->BSP_LumpTable.Lump[LUMP_FACES].Offset,
+                                this->BSP_LumpTable.Lump[LUMP_FACES].Length);
     }
 
     bool LoadSurfaceEdges(wxFileInputStream* infile)
     {
-        return this->SurfaceEdges.LoadLump(infile,
-                                       this->LumpTable.Lump[LUMP_SURFACE_EDGES].Offset,
-                                       this->LumpTable.Lump[LUMP_SURFACE_EDGES].Length);
+        return this->BSP_SurfaceEdges.LoadLump(infile,
+                                       this->BSP_LumpTable.Lump[LUMP_SURFACE_EDGES].Offset,
+                                       this->BSP_LumpTable.Lump[LUMP_SURFACE_EDGES].Length);
     }
 
     bool LoadEdges(wxFileInputStream* infile)
     {
-        return this->Edges.LoadLump(infile,
-                                this->LumpTable.Lump[LUMP_EDGES].Offset,
-                                this->LumpTable.Lump[LUMP_EDGES].Length);
+        return this->BSP_Edges.LoadLump(infile,
+                                this->BSP_LumpTable.Lump[LUMP_EDGES].Offset,
+                                this->BSP_LumpTable.Lump[LUMP_EDGES].Length);
     }
 
     bool LoadTextures(wxFileInputStream* infile)
     {
-        return this->Textures.LoadLump(infile,
-                                   this->LumpTable.Lump[LUMP_TEXTURE_INFORMATION].Offset,
-                                   this->LumpTable.Lump[LUMP_TEXTURE_INFORMATION].Length,
+        return this->BSP_Textures.LoadLump(infile,
+                                   this->BSP_LumpTable.Lump[LUMP_TEXTURE_INFORMATION].Offset,
+                                   this->BSP_LumpTable.Lump[LUMP_TEXTURE_INFORMATION].Length,
                                    this->baseDir);
     }
 
     bool LoadBrushModels(wxFileInputStream* infile)
     {
-        return this->BrushModels.LoadLump(infile,
-                                      this->LumpTable.Lump[LUMP_MODELS].Offset,
-                                      this->LumpTable.Lump[LUMP_MODELS].Length);
+        return this->BSP_BrushModels.LoadLump(infile,
+                                      this->BSP_LumpTable.Lump[LUMP_MODELS].Offset,
+                                      this->BSP_LumpTable.Lump[LUMP_MODELS].Length);
     }
 
     bool LoadPlanes(wxFileInputStream* infile)
     {
-        return this->Planes.LoadLump(infile,
-                                 this->LumpTable.Lump[LUMP_PLANES].Offset,
-                                 this->LumpTable.Lump[LUMP_PLANES].Length);
+        return this->BSP_Planes.LoadLump(infile,
+                                 this->BSP_LumpTable.Lump[LUMP_PLANES].Offset,
+                                 this->BSP_LumpTable.Lump[LUMP_PLANES].Length);
     }
 
     bool LoadBrushes(wxFileInputStream* infile)
     {
-        return this->Brushes.LoadLump(infile,
-                                  this->LumpTable.Lump[LUMP_BRUSHES].Offset,
-                                  this->LumpTable.Lump[LUMP_BRUSHES].Length);
+        return this->BSP_Brushes.LoadLump(infile,
+                                  this->BSP_LumpTable.Lump[LUMP_BRUSHES].Offset,
+                                  this->BSP_LumpTable.Lump[LUMP_BRUSHES].Length);
     }
 
     bool LoadBrushSides(wxFileInputStream* infile)
     {
-        return this->BrushSides.LoadLump(infile,
-                                     this->LumpTable.Lump[LUMP_BRUSH_SIDES].Offset,
-                                     this->LumpTable.Lump[LUMP_BRUSH_SIDES].Length);
+        return this->BSP_BrushSides.LoadLump(infile,
+                                     this->BSP_LumpTable.Lump[LUMP_BRUSH_SIDES].Offset,
+                                     this->BSP_LumpTable.Lump[LUMP_BRUSH_SIDES].Length);
     }
 
     bool SetupBSPData(QuME_Frame* Frame);
@@ -143,25 +143,23 @@ public:
     wxUint32 IBSPMagic; //this map's 'magic' check value
     wxUint32 BSPVersion; //this map's version number
     wxUint32 EntCount; //how many entities we found on load
-    QuME_BSP_Lumps LumpTable;
-    QuME_BSP_Vertices Vertices; //the shared vertices in this file
-    QuME_BSP_Entities Entities; //the file's entities
-    QuME_BSP_Faces Faces; //the polygons of this map
-    QuME_BSP_Edges Edges;
-    QuME_BSP_SurfaceEdges SurfaceEdges;
-    QuME_BSP_Textures Textures; //texture info
-    QuME_BSP_TextureUVs TextureUVs; //the UV coordinates of our vertices
-    QuME_BSP_BrushModels BrushModels; //the brush models in this map - model #0 is the level itself
+    QuME_BSP_Lumps BSP_LumpTable;
+    QuME_BSP_Vertices BSP_Vertices; //the shared vertices in this file
+    QuME_BSP_Entities BSP_Entities; //the file's entities
+    QuME_BSP_Faces BSP_Faces; //the polygons of this map
+    QuME_BSP_Edges BSP_Edges;
+    QuME_BSP_SurfaceEdges BSP_SurfaceEdges;
+    QuME_BSP_Textures BSP_Textures; //texture info
+    QuME_BSP_TextureUVs BSP_TextureUVs; //the UV coordinates of our vertices
+    QuME_BSP_BrushModels BSP_BrushModels; //the brush models in this map - model #0 is the level itself
 
     //the original brush data
-    QuME_BSP_Planes Planes;
-    QuME_BSP_Brushes Brushes;
-    QuME_BSP_BrushSides BrushSides;
-    QuME_BSP_TextureUVs BrushSideUVs;
-    QuME_BSP_Brush_Vertices BrushVertices;
-    QuME_Bounds BrushBoundingBox;
-    QuME_Vector Level_BBox_Min;
-    QuME_Vector Level_BBox_Max;
+    QuME_BSP_Planes BSP_Planes;
+    QuME_BSP_Brushes BSP_Brushes;
+    QuME_BSP_BrushSides BSP_BrushSides;
+    QuME_BSP_TextureUVs BSP_BrushSideUVs;
+    QuME_BSP_Brush_Vertices BSP_BrushVertices;
+    QuME_Bounds BSP_BrushBoundingBox;
 };
 
 #endif // QuME_BSP_Data_H_INCLUDED

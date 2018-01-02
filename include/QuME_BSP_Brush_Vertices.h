@@ -11,8 +11,7 @@ public:
 	QuME_BSP_Brush_Vertices();
 	~QuME_BSP_Brush_Vertices();
 
-	QuME_Vector* Vertices;
-	wxUint32 Count;
+	QuME_Array<QuME_Vector> Vertices;
 	QuME_LinkedList<QuME_Vector> VertexList;
 };
 

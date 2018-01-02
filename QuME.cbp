@@ -42,18 +42,15 @@
 			<Add option="-Wall" />
 			<Add option="-std=c++11" />
 			<Add option="-m64" />
-			<Add option="`/usr/local/bin/wx-config --cflags`" />
+			<Add option="`wx-config --cflags`" />
 			<Add directory="./include" />
 			<Add directory="." />
 		</Compiler>
 		<Linker>
 			<Add option="-m64" />
-			<Add option="`/usr/local/bin/wx-config --libs`" />
-			<Add library="/usr/lib/x86_64-linux-gnu/libGL.so" />
-			<Add library="/usr/local/lib/libwx_gtk2u_gl-3.0.so" />
+			<Add option="`wx-config --libs`" />
 		</Linker>
 		<Unit filename="include/QuME_App.h" />
-		<Unit filename="include/QuME_Arrays.h" />
 		<Unit filename="include/QuME_BSP_BrushModels.h" />
 		<Unit filename="include/QuME_BSP_Brush_Exporter.h" />
 		<Unit filename="include/QuME_BSP_Brush_Vertices.h" />
@@ -61,14 +58,12 @@
 		<Unit filename="include/QuME_BSP_Data.h" />
 		<Unit filename="include/QuME_BSP_Edges.h" />
 		<Unit filename="include/QuME_BSP_Entities.h" />
-		<Unit filename="include/QuME_BSP_Entity.h" />
 		<Unit filename="include/QuME_BSP_Faces.h" />
 		<Unit filename="include/QuME_BSP_Load.h" />
 		<Unit filename="include/QuME_BSP_Lumps.h" />
 		<Unit filename="include/QuME_BSP_ObjExporter.h" />
 		<Unit filename="include/QuME_BSP_Planes.h" />
 		<Unit filename="include/QuME_BSP_SurfaceEdges.h" />
-		<Unit filename="include/QuME_BSP_Texture.h" />
 		<Unit filename="include/QuME_BSP_TextureUVs.h" />
 		<Unit filename="include/QuME_BSP_Textures.h" />
 		<Unit filename="include/QuME_BSP_Vertices.h" />
@@ -89,7 +84,6 @@
 		<Unit filename="src/QuME_BSP_Data.cpp" />
 		<Unit filename="src/QuME_BSP_Edges.cpp" />
 		<Unit filename="src/QuME_BSP_Entities.cpp" />
-		<Unit filename="src/QuME_BSP_Entity.cpp" />
 		<Unit filename="src/QuME_BSP_Faces.cpp" />
 		<Unit filename="src/QuME_BSP_Load.cpp" />
 		<Unit filename="src/QuME_BSP_Lumps.cpp" />
@@ -107,7 +101,6 @@
 		<Unit filename="src/QuME_Plane.cpp" />
 		<Unit filename="src/QuME_UniqueStrings.cpp" />
 		<Unit filename="src/QuME_Vector.cpp" />
-		<Unit filename="wxsmith/QuME_Frame.wxs" />
 		<Extensions>
 			<envvars />
 			<code_completion>
@@ -116,10 +109,7 @@
 			</code_completion>
 			<lib_finder disable_auto="1" />
 			<wxsmith version="1">
-				<gui name="wxWidgets" src="src/QuME_App.cpp" main="-- None --" init_handlers="necessary" language="CPP" />
-				<resources>
-					<wxFrame wxs="wxsmith/QuME_Frame.wxs" src="src/QuME_Main.cpp" hdr="src/QuME_Main.h" fwddecl="0" i18n="1" name="QuME_Frame" language="CPP" />
-				</resources>
+				<gui name="wxWidgets" src="src/QuME_App.cpp" main="QuME_Frame" init_handlers="necessary" language="CPP" />
 			</wxsmith>
 			<debugger />
 		</Extensions>

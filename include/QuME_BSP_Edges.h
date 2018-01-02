@@ -9,8 +9,8 @@
 class QuME_BSP_Edge
 {
 public:
-    wxUint32 a;
-    wxUint32 b;
+    wxInt32 a;
+    wxInt32 b;
 };
 
 class QuME_BSP_Edges
@@ -21,8 +21,7 @@ public:
     bool LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length);
     void DebugDump(wxTextOutputStream& out);
 
-    wxUint32 Count;
-    QuME_BSP_Edge* EdgeArray;
+    QuME_Array<QuME_BSP_Edge> Edges;
     QuME_LinkedList<QuME_BSP_Edge> EdgeList;
 };
 

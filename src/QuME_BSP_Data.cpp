@@ -10,7 +10,6 @@
 #include "QuME_Main.h"
 
 QuME_BSP_Data::QuME_BSP_Data()
-:Level_BBox_Min(0.0, 0.0, 0.0), Level_BBox_Max(0.0, 0.0, 0.0)
 {
     this->IBSPMagic = 0;
     this->BSPVersion = 0;
@@ -68,53 +67,46 @@ bool QuME_BSP_Data::SetupBSPData(QuME_Frame* Frame)
     event.SetInt(0);
     wxQueueEvent(Frame, event.Clone());
 
-    wxUint32 UVIndex = 0;
-    wxInt32* SEdges = this->SurfaceEdges.SurfaceEdge;
-    QuME_BSP_Edge* BSPEdges = this->Edges.EdgeArray;
-    QuME_BSP_Texture* Tex = this->Textures.Texture;
-    QuME_Vector* Vertexes = this->Vertices.VertexArray;
-
-    for(wxUint32 i = 0; i < this->Faces.Count; i++)
+    for(wxUint32 i = 0; i < this->BSP_Faces.Faces.Count; i++)
     {
         //A simple progress update message
-        if((i % (this->Faces.Count / 100)) == 0)
+        if((i % (this->BSP_Faces.Faces.Count / 100)) == 0) //once every 100 faces
         {
-            event.SetInt(i * 50 / this->Faces.Count); //fill up first half of progress bar only
+            event.SetInt(i * 50 / this->BSP_Faces.Faces.Count); //fill up first half of progress bar only
             wxQueueEvent(Frame, event.Clone());
         }
 
-        QuME_BSP_Face* Face = &this->Faces.Face[i];
+        QuME_BSP_Face* Face = &this->BSP_Faces.Faces[i];
         wxUint32 TexIndex = Face->TextureInfo;
         wxInt32 FirstEdge = Face->FirstEdge;
-        Face->VertexArray = new wxUint32[Face->EdgeCount];
-        Face->TextureUV =  new wxUint32[Face->EdgeCount];
+        Face->VArray.Allocate(Face->EdgeCount);
         for(wxInt32 j = 0; j < Face->EdgeCount; j++)
         {
-            wxInt32 FIndex = SEdges[FirstEdge + j];
-            wxUint16 VIndex = ((FIndex > 0) ? BSPEdges[FIndex].a : BSPEdges[-FIndex].b);
-            Face->VertexArray[j] = VIndex;
+            wxInt32 FIndex = this->BSP_SurfaceEdges.SurfaceEdgeIndices[FirstEdge + j];
+            wxUint32 VIndex = ((FIndex > 0) ? this->BSP_Edges.Edges[FIndex].a : this->BSP_Edges.Edges[-FIndex].b);
+            Face->VArray[j].VertexIndex = VIndex;
 
             //Calculate UV indexes
-            wxFloat64 U = Vertexes[VIndex].dot(Tex[TexIndex].uAxis) + Tex[TexIndex].uOffset;
-            U /= static_cast<wxFloat64>(Tex[TexIndex].xRes); //normalize U coordinate
-            wxFloat64 V = Vertexes[VIndex].dot(Tex[TexIndex].vAxis) + Tex[TexIndex].vOffset;
-            V /= -(static_cast<wxFloat64>(Tex[TexIndex].yRes)); //Normalize V coordinate
-            QuME_UV p = QuME_UV(U , V);
-            this->TextureUVs.UVs.Append(p); //Add these coordinates to list
-            Face->TextureUV[j] = UVIndex++; //set to current index, then increment
+            wxFloat64 U = this->BSP_Vertices.Vertices[VIndex].dot(this->BSP_Textures.TextureInfo[TexIndex].uAxis);
+            U += this->BSP_Textures.TextureInfo[TexIndex].uOffset;
+            U /= this->BSP_Textures.TextureInfo[TexIndex].xRes; //normalize U coordinate
+            wxFloat64 V = this->BSP_Vertices.Vertices[VIndex].dot(this->BSP_Textures.TextureInfo[TexIndex].vAxis);
+            V += this->BSP_Textures.TextureInfo[TexIndex].vOffset;
+            V /= this->BSP_Textures.TextureInfo[TexIndex].yRes; //Normalize V coordinate
+            QuME_UV p(U, -V);
+            Face->VArray[j].UVIndex = this->BSP_TextureUVs.UVList.Append(p);
         }
         Face->Triangulate();
     }
 
-    this->TextureUVs.UVArrayCount = this->TextureUVs.UVs.ToArray(this->TextureUVs.UVArray); //turn the UV linked list into an array once all UVs have been calculated
+    this->BSP_TextureUVs.UVList.ToArray(this->BSP_TextureUVs.UVs); //convert linked list to array
 
     return true;
 }
 
 QuME_LinkedList<wxUint32>* QuME_BSP_Data::QuickHull2D(wxUint32 Start, wxUint32 End, QuME_LinkedList<wxUint32>* Right, QuME_Vector& Normal, wxUint32 BrushID)
 {
-    QuME_Vector* VertexSet = this->BrushVertices.Vertices;
-    QuME_Line L(VertexSet[Start], VertexSet[End]);
+    QuME_Line L(this->BSP_BrushVertices.Vertices[Start], this->BSP_BrushVertices.Vertices[End]);
     QuME_LinkedList<wxUint32>* r = new QuME_LinkedList<wxUint32>(); //the return set of vertices
     if(Right->Count == 0)
     {
@@ -127,17 +119,17 @@ QuME_LinkedList<wxUint32>* QuME_BSP_Data::QuickHull2D(wxUint32 Start, wxUint32 E
     wxUint32 furthest = Right->Head->Data;
     for(ListItem<wxUint32>* i = Right->Head; i != nullptr; i = i->next)
     {
-        if(L.distanceto(VertexSet[furthest]) < L.distanceto(VertexSet[i->Data]))
+        if(L.distanceto(this->BSP_BrushVertices.Vertices[furthest]) < L.distanceto(this->BSP_BrushVertices.Vertices[i->Data]))
         {
             furthest = i->Data;
         }
     }
-    QuME_Vector BaseLineA = VertexSet[furthest] - VertexSet[Start];
-    QuME_Vector BaseLineB = VertexSet[End] - VertexSet[furthest];
+    QuME_Vector BaseLineA = this->BSP_BrushVertices.Vertices[furthest] - this->BSP_BrushVertices.Vertices[Start];
+    QuME_Vector BaseLineB = this->BSP_BrushVertices.Vertices[End] - this->BSP_BrushVertices.Vertices[furthest];
     for(ListItem<wxUint32>* i = Right->Head; i != nullptr; i = i->next)
     {
         if(i->Data == furthest) continue;
-        QuME_Vector Test = VertexSet[i->Data] - VertexSet[Start];
+        QuME_Vector Test = this->BSP_BrushVertices.Vertices[i->Data] - this->BSP_BrushVertices.Vertices[Start];
         QuME_Vector Xed = Test.cross(BaseLineA);
         if(Xed.length2() > 0.0)
 		{
@@ -148,7 +140,7 @@ QuME_LinkedList<wxUint32>* QuME_BSP_Data::QuickHull2D(wxUint32 Start, wxUint32 E
 			}
 
 		}
-        Test = VertexSet[i->Data] - VertexSet[furthest];
+        Test = this->BSP_BrushVertices.Vertices[i->Data] - this->BSP_BrushVertices.Vertices[furthest];
        Xed = Test.cross(BaseLineB);
 		if(Xed.length2() > 0.0)
 		{
@@ -176,32 +168,27 @@ QuME_LinkedList<wxUint32>* QuME_BSP_Data::QuickHull2D(wxUint32 Start, wxUint32 E
 //call this only once all the BSP data is loaded
 bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
 {
-    QuME_BSP_Plane* BSPPlane = this->Planes.BSPPlaneArray.Data;
-    QuME_BSP_Brush* Brush = this->Brushes.Brush;
-    QuME_BSP_BrushSide* BrushSide = this->BrushSides.BrushSideArray.Data;
-    QuME_BSP_Texture* Texture = this->Textures.Texture;
-
     wxThreadEvent event(wxEVT_THREAD, CONSOLELOG_EVENT);
     wxThreadEvent progress(wxEVT_THREAD, BSPPROCESSING_EVENT);
 
-    event.SetString(L"Processing Brushes...\nNumber of brushes in map:" + std::to_wstring(this->Brushes.Count) + L"\n");
+    event.SetString(L"Number of brushes in map:" + std::to_wstring(this->BSP_Brushes.Brushes.Count) + L"\n");
     wxQueueEvent(Frame, event.Clone());
 
-    for(wxUint32 i = 0; i < this->BrushSides.BrushSideArray.Count; i++)
+    for(wxUint32 i = 0; i < this->BSP_BrushSides.BrushSideArray.Count; i++)
     {
-        BrushSide[i].Normal = Planes.BSPPlaneArray.Data[BrushSide[i].PlaneIndex].Plane.Normal;
+        this->BSP_BrushSides.BrushSideArray[i].Normal = this->BSP_Planes.Planes[this->BSP_BrushSides.BrushSideArray[i].PlaneIndex].Plane.Normal;
     }
 
     //iterate through all the brushes in the BSP file
-    for(wxUint32 BrushIndex = 0; BrushIndex < this->Brushes.Count; BrushIndex++)
+    for(wxUint32 BrushIndex = 0; BrushIndex < this->BSP_Brushes.Brushes.Count; BrushIndex++)
     {
-        if((BrushIndex % (this->Brushes.Count / 100)) == 0) //update progress every 100 brushes
+        if((BrushIndex % (this->BSP_Brushes.Brushes.Count / 100)) == 0) //update progress every 100 brushes
         {
-            progress.SetInt(50 + BrushIndex * 50 / this->Brushes.Count); //fill up other half of progress bar
+            progress.SetInt(50 + BrushIndex * 50 / this->BSP_Brushes.Brushes.Count); //fill up other half of progress bar
             wxQueueEvent(Frame, progress.Clone());
         }
 
-        QuME_BSP_Brush* CurrentBrush = &Brush[BrushIndex];
+        QuME_BSP_Brush* CurrentBrush = &this->BSP_Brushes.Brushes[BrushIndex];
 
         wxUint32 BrushSideCount = CurrentBrush->SideCount;
         wxUint32 FirstBrushSide = CurrentBrush->FirstBrushSide;
@@ -209,13 +196,13 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
         //now find all possible combinations of 3 brush sides in current brush, and find intersections
         for(wxUint32 i = FirstBrushSide; i < (BrushSideCount + FirstBrushSide) - 2; i++)
         {
-            QuME_Plane* A = &BSPPlane[BrushSide[i].PlaneIndex].Plane;
+            QuME_Plane* A = &this->BSP_Planes.Planes[this->BSP_BrushSides.BrushSideArray[i].PlaneIndex].Plane;
             for(wxUint32 j = i + 1; j < (BrushSideCount + FirstBrushSide) - 1; j++)
             {
-                QuME_Plane* B = &BSPPlane[BrushSide[j].PlaneIndex].Plane;
+                QuME_Plane* B = &this->BSP_Planes.Planes[this->BSP_BrushSides.BrushSideArray[j].PlaneIndex].Plane;
                 for(wxUint32 k = j + 1; k < BrushSideCount + FirstBrushSide; k++)
                 {
-                    QuME_Plane* C = &BSPPlane[BrushSide[k].PlaneIndex].Plane;
+                    QuME_Plane* C = &this->BSP_Planes.Planes[this->BSP_BrushSides.BrushSideArray[k].PlaneIndex].Plane;
                     QuME_Vector CurrentVertex;
                     if(A->Intersect(*B, *C, CurrentVertex))
                     {
@@ -223,7 +210,7 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
                         //check to see if found vertex is inside brush
                         for(wxUint32 l = FirstBrushSide; l < BrushSideCount + FirstBrushSide; l++)
                         {
-                            wxFloat64 OnSide = BSPPlane[BrushSide[l].PlaneIndex].Plane.TestSide(CurrentVertex);
+                            wxFloat64 OnSide = this->BSP_Planes.Planes[this->BSP_BrushSides.BrushSideArray[l].PlaneIndex].Plane.TestSide(CurrentVertex);
                             if(OnSide > QUME_EPSILON)
                             {
                                 VertInside = false; //not a valid vertex, ignore
@@ -234,11 +221,11 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
                         if(VertInside)
                         {
                         	//vertex is inside brush, add to brush vertices
-                        	wxUint32 AddedIndex = CurrentBrush->VertexList.AppendIfUnique(CurrentVertex);
+                        	wxUint32 AddedIndex = CurrentBrush->BrushVertexList.AppendIfUnique(CurrentVertex);
                         	//add index of added vertex to brush sides for later
-							BrushSide[i].VertexList.AppendIfUnique(AddedIndex); //these indices are relative to CurrentBrush->VertexArray
-							BrushSide[j].VertexList.AppendIfUnique(AddedIndex);
-							BrushSide[k].VertexList.AppendIfUnique(AddedIndex);
+							this->BSP_BrushSides.BrushSideArray[i].BrushVertexList.AppendIfUnique(AddedIndex); //these indices are relative to CurrentBrush->VertexArray
+							this->BSP_BrushSides.BrushSideArray[j].BrushVertexList.AppendIfUnique(AddedIndex);
+							this->BSP_BrushSides.BrushSideArray[k].BrushVertexList.AppendIfUnique(AddedIndex);
                         }
                     }
                 }
@@ -247,88 +234,87 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
     }
 
     //transfer brush vertices to global list, and convert brush-local vertex indices to global indices
-	for(wxUint32 BrushIndex = 0; BrushIndex < this->Brushes.Count; BrushIndex++)
+	for(wxUint32 BrushIndex = 0; BrushIndex < this->BSP_Brushes.Brushes.Count; BrushIndex++)
 	{
-		QuME_BSP_Brush* CurrentBrush = &this->Brushes.Brush[BrushIndex];
-		CurrentBrush->VertexArrayCount = CurrentBrush->VertexList.ToArray(CurrentBrush->VertexArray);
+		QuME_BSP_Brush* CurrentBrush = &this->BSP_Brushes.Brushes[BrushIndex];
+		CurrentBrush->BrushVertexList.ToArray(CurrentBrush->BrushVertices);
 
-		for(wxUint32 VertexIndex = 0; VertexIndex < CurrentBrush->VertexArrayCount; VertexIndex++)
+		for(wxUint32 VertexIndex = 0; VertexIndex < CurrentBrush->BrushVertices.Count; VertexIndex++)
 		{
-			CurrentBrush->Bounds.UpdateBounds(CurrentBrush->VertexArray[VertexIndex]);
-			wxUint32 AddedIndex = this->BrushVertices.VertexList.Append(CurrentBrush->VertexArray[VertexIndex]);
+			CurrentBrush->Bounds.UpdateBounds(CurrentBrush->BrushVertices[VertexIndex]);
+			wxUint32 AddedIndex = this->BSP_BrushVertices.VertexList.Append(CurrentBrush->BrushVertices[VertexIndex]);
 
 			for(wxUint32 SideIndex = CurrentBrush->FirstBrushSide; SideIndex < CurrentBrush->SideCount + CurrentBrush->FirstBrushSide; SideIndex++)
 			{
-				QuME_BSP_BrushSide* CurrentSide = &BrushSide[SideIndex];
-				CurrentSide->VertexArrayCount = CurrentSide->VertexList.ToArray(CurrentSide->VertexArray);
-				for(wxUint32 i = 0; i < CurrentSide->VertexArrayCount; i++)
+				QuME_BSP_BrushSide* CurrentSide = &this->BSP_BrushSides.BrushSideArray[SideIndex];
+				CurrentSide->BrushVertexList.ToArray(CurrentSide->BrushSideVertices);
+				for(wxUint32 i = 0; i < CurrentSide->BrushSideVertices.Count; i++)
 				{
-					if(CurrentSide->VertexArray[i] == VertexIndex)
+					if(CurrentSide->BrushSideVertices[i] == VertexIndex)
 					{
-						CurrentSide->VertexIndexList.AppendIfUnique(AddedIndex);
+						CurrentSide->BrushSideVertexIndexList.AppendIfUnique(AddedIndex);
 					}
 				}
-				CurrentSide->VertexIndexArrayCount = CurrentSide->VertexIndexList.ToArray(CurrentSide->VertexIndexArray);
+				CurrentSide->BrushSideVertexIndexList.ToArray(CurrentSide->BrushSideVertexIndices);
 			}
 		}
 	}
 
 	//convert linked list to array once we're done adding vertices
-    this->BrushVertices.Count = this->BrushVertices.VertexList.ToArray(this->BrushVertices.Vertices);
-
+	this->BSP_BrushVertices.VertexList.ToArray(this->BSP_BrushVertices.Vertices);
     //calculate bounding box of map
-    for(wxUint32 i = 0; i < this->BrushVertices.Count; i++)
+    for(wxUint32 i = 0; i < this->BSP_BrushVertices.Vertices.Count; i++)
 	{
-		this->BrushBoundingBox.UpdateBounds(this->BrushVertices.Vertices[i]);
+		this->BSP_BrushBoundingBox.UpdateBounds(this->BSP_BrushVertices.Vertices[i]);
 	}
 
 	//sort Brush faces in counterclockwise order
-    for(wxUint32 BrushIndex = 0; BrushIndex < this->Brushes.Count; BrushIndex++)
+    for(wxUint32 BrushIndex = 0; BrushIndex < this->BSP_Brushes.Brushes.Count; BrushIndex++)
     {
 
-        QuME_BSP_Brush* CurrentBrush = &this->Brushes.Brush[BrushIndex];
+        QuME_BSP_Brush* CurrentBrush = &this->BSP_Brushes.Brushes[BrushIndex];
         wxUint32 BrushSideCount = CurrentBrush->SideCount;
         wxUint32 FirstBrushSide = CurrentBrush->FirstBrushSide;
 
         for(wxUint32 BrushSideIndex = FirstBrushSide; BrushSideIndex < BrushSideCount + FirstBrushSide; BrushSideIndex++)
         {
-			QuME_BSP_BrushSide* CurrentSide = &BrushSide[BrushSideIndex];
+			QuME_BSP_BrushSide* CurrentSide = &this->BSP_BrushSides.BrushSideArray[BrushSideIndex];
 
-            if(CurrentSide->VertexIndexArrayCount > 2)
+            if(CurrentSide->BrushSideVertexIndices.Count > 2)
             {
                 QuME_LinkedList<wxUint32> LeftPoints;
                 QuME_LinkedList<wxUint32> RightPoints;
 
-                wxUint32 StartIndex = CurrentSide->VertexIndexArray[0];
-                wxUint32 EndIndex = CurrentSide->VertexIndexArray[1];
-                for(wxUint32 i = 2; i < CurrentSide->VertexIndexArrayCount; i++)
+                wxUint32 StartIndex = CurrentSide->BrushSideVertexIndices[0];
+                wxUint32 EndIndex = CurrentSide->BrushSideVertexIndices[1];
+                for(wxUint32 i = 2; i < CurrentSide->BrushSideVertexIndices.Count; i++)
                 {
-                    QuME_Vector t = BrushVertices.Vertices[EndIndex] - BrushVertices.Vertices[StartIndex];
-                    QuME_Vector t2 = BrushVertices.Vertices[CurrentSide->VertexIndexArray[i]] - BrushVertices.Vertices[StartIndex];
+                    QuME_Vector t = this->BSP_BrushVertices.Vertices[EndIndex] - this->BSP_BrushVertices.Vertices[StartIndex];
+                    QuME_Vector t2 = this->BSP_BrushVertices.Vertices[CurrentSide->BrushSideVertexIndices[i]] - this->BSP_BrushVertices.Vertices[StartIndex];
                     //find farthest point from origin
                     if(t2.length2() > t.length2())
                     {
-                        EndIndex = CurrentSide->VertexIndexArray[i];
+                        EndIndex = CurrentSide->BrushSideVertexIndices[i];
                     }
                 }
-                QuME_Vector Base = BrushVertices.Vertices[EndIndex] - BrushVertices.Vertices[StartIndex];
-                QuME_Line BaseLine(BrushVertices.Vertices[StartIndex], BrushVertices.Vertices[EndIndex]);
+                QuME_Vector Base = this->BSP_BrushVertices.Vertices[EndIndex] - this->BSP_BrushVertices.Vertices[StartIndex];
+                QuME_Line BaseLine(this->BSP_BrushVertices.Vertices[StartIndex], this->BSP_BrushVertices.Vertices[EndIndex]);
 
-                for(wxUint32 i = 1; i < CurrentSide->VertexIndexArrayCount; i++)
+                for(wxUint32 i = 1; i < CurrentSide->BrushSideVertexIndices.Count; i++)
                 {
-                    if(CurrentSide->VertexIndexArray[i] != EndIndex)
+                    if(CurrentSide->BrushSideVertexIndices[i] != EndIndex)
                     {
 
-                        QuME_Vector Test = BrushVertices.Vertices[CurrentSide->VertexIndexArray[i]] - BrushVertices.Vertices[StartIndex];
+                        QuME_Vector Test = this->BSP_BrushVertices.Vertices[CurrentSide->BrushSideVertexIndices[i]] - this->BSP_BrushVertices.Vertices[StartIndex];
                         if(Base.cross(Test).length2() > 0.0)
 						{
 							if(Base.cross(Test).dot(CurrentSide->Normal) > 0.0)
 							{
-								LeftPoints.Append(CurrentSide->VertexIndexArray[i]);
+								LeftPoints.Append(CurrentSide->BrushSideVertexIndices[i]);
 							}
 							else
 							{
-								RightPoints.Append(CurrentSide->VertexIndexArray[i]);
+								RightPoints.Append(CurrentSide->BrushSideVertexIndices[i]);
 							}
 						}
                     }
@@ -341,36 +327,36 @@ bool QuME_BSP_Data::ProcessBrushes(QuME_Frame* Frame)
                 result.Append(EndIndex);
                 result.Append(*b);
                 SAFE_DELETE(a); //squashed memory leak here...
-                SAFE_DELETE(b);
+                SAFE_DELETE(b); //...and here...
 
-                CurrentSide->VertexIndexArrayCount = result.ToArray(CurrentSide->VertexIndexArray);
+                result.ToArray(CurrentSide->BrushSideVertexIndices);
 
 				wxInt32 TexIndex = CurrentSide->TextureIndex;
 
-				if((CurrentSide->VertexIndexArrayCount > 2) && (CurrentSide->TextureIndex >= 0))
+				if((CurrentSide->BrushSideVertexIndices.Count > 2) && (CurrentSide->TextureIndex >= 0))
 				{
-					for(wxUint32 j = 0; j < CurrentSide->VertexIndexArrayCount; j++)
+					for(wxUint32 j = 0; j < CurrentSide->BrushSideVertexIndices.Count; j++)
 					{
-						CurrentBrush->Bounds.UpdateBounds(this->BrushVertices.Vertices[CurrentSide->VertexIndexArray[j]]);
+						CurrentBrush->Bounds.UpdateBounds(this->BSP_BrushVertices.Vertices[CurrentSide->BrushSideVertexIndices[j]]);
 
 						//Calculate UV indexes by projecting texture onto surface
-						wxFloat64 U = this->BrushVertices.Vertices[CurrentSide->VertexIndexArray[j]].dot(Texture[TexIndex].uAxis);
-						U += Texture[TexIndex].uOffset;
-						U /= Texture[TexIndex].xRes; //normalize U coordinate
-						wxFloat64 V = this->BrushVertices.Vertices[CurrentSide->VertexIndexArray[j]].dot(Texture[TexIndex].vAxis);
-						V += Texture[TexIndex].vOffset;
-						V /= Texture[TexIndex].yRes; //Normalize V coordinate
-						QuME_UV p = QuME_UV(U, -V); //remember to negate V coord here, to flip textures the right way
-						wxUint32 q = this->BrushSideUVs.UVs.Append(p);
+						wxFloat64 U = this->BSP_BrushVertices.Vertices[CurrentSide->BrushSideVertexIndices[j]].dot(this->BSP_Textures.TextureInfo[TexIndex].uAxis);
+						U += this->BSP_Textures.TextureInfo[TexIndex].uOffset;
+						U /= this->BSP_Textures.TextureInfo[TexIndex].xRes; //normalize U coordinate
+						wxFloat64 V = this->BSP_BrushVertices.Vertices[CurrentSide->BrushSideVertexIndices[j]].dot(this->BSP_Textures.TextureInfo[TexIndex].vAxis);
+						V += this->BSP_Textures.TextureInfo[TexIndex].vOffset;
+						V /= this->BSP_Textures.TextureInfo[TexIndex].yRes; //Normalize V coordinate
+						QuME_UV p(U, -V); //remember to negate V coord here, to flip textures the right way
+						wxUint32 q = this->BSP_BrushSideUVs.UVList.Append(p);
 
-						CurrentSide->UVIndices.Append(q); //Add these coordinates to list
+						CurrentSide->BrushSideUVIndices.Append(q); //Add these coordinates to list
 					}
-					CurrentSide->UVIndexArrayCount = CurrentSide->UVIndices.ToArray(CurrentSide->UVIndexArray);
+					CurrentSide->BrushSideUVIndices.ToArray(CurrentSide->BrushSideUVs);
 				}
             }
         }
     }
-	this->BrushSideUVs.UVArrayCount = this->BrushSideUVs.UVs.ToArray(this->BrushSideUVs.UVArray);
+    this->BSP_BrushSideUVs.UVList.ToArray(this->BSP_BrushSideUVs.UVs);
 
     //dismiss the progress box
     progress.SetInt(-1);
@@ -384,13 +370,13 @@ void QuME_BSP_Data::DebugDump(wxTextOutputStream& out)
 {
     out << L"BSP version: " << this->BSPVersion << L"\n";
     out << L"\n-----------------------------------\n";
-    this->LumpTable.DebugDump(out);
-    this->Entities.DebugDump(out);
-    this->Vertices.DebugDump(out);
-    this->SurfaceEdges.DebugDump(out);
-    this->Edges.DebugDump(out);
-    this->Faces.DebugDump(out);
-    this->Textures.DebugDump(out);
-    this->BrushModels.DebugDump(out);
+    this->BSP_LumpTable.DebugDump(out);
+    this->BSP_Entities.DebugDump(out);
+    this->BSP_Vertices.DebugDump(out);
+    this->BSP_SurfaceEdges.DebugDump(out);
+    this->BSP_Edges.DebugDump(out);
+    this->BSP_Faces.DebugDump(out);
+    this->BSP_Textures.DebugDump(out);
+    this->BSP_BrushModels.DebugDump(out);
 }
 

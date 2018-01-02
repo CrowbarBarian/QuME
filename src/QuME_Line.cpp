@@ -13,6 +13,12 @@ QuME_Line::QuME_Line()
     //ctor
 }
 
+QuME_Line::QuME_Line(QuME_Vector& line_start, QuME_Vector& line_end)
+:Origin(line_start), Direction(line_end - line_start)
+{
+	Direction.normalize();
+}
+
 QuME_Line::~QuME_Line()
 {
     //dtor

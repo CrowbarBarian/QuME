@@ -16,7 +16,15 @@ wxIMPLEMENT_APP(QuME_App);
 
 QuME_App::QuME_App()
 {
-    ShuttingDown = false;
+	this->bsp = nullptr;
+    this->ShuttingDown = false;
+}
+
+QuME_App::~QuME_App()
+{
+	SAFE_DELETE(this->bsp);
+	this->bsp = nullptr;
+	this->ShuttingDown = true;
 }
 
 bool QuME_App::OnInit()
@@ -30,5 +38,4 @@ bool QuME_App::OnInit()
     	SetTopWindow(Frame);
     }
     return wxsOK;
-
 }

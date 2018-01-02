@@ -14,13 +14,13 @@ QuME_PAK_DirEntry::QuME_PAK_DirEntry()
 	this->fileSize = 0;
 }
 
-QuME_PAK_DirEntry::QuME_PAK_DirEntry(const std::wstring& fname, const wxUint32 foff, const wxUint32 fsize):fileName(fname)
+QuME_PAK_DirEntry::QuME_PAK_DirEntry(std::wstring& fname, wxUint32 foff, wxUint32 fsize):fileName(fname)
 {
 	this->fileOffset = foff;
 	this->fileSize = fsize;
 }
 
-QuME_PAK_DirEntry::QuME_PAK_DirEntry(const QuME_PAK_DirEntry& o):fileName(o.fileName)
+QuME_PAK_DirEntry::QuME_PAK_DirEntry(QuME_PAK_DirEntry& o):fileName(o.fileName)
 {
 	this->fileOffset = o.fileOffset;
 	this->fileSize = o.fileSize;
@@ -30,7 +30,7 @@ QuME_PAK_DirEntry::~QuME_PAK_DirEntry()
 {
 }
 
-QuME_PAK_DirEntry& QuME_PAK_DirEntry::operator=(const QuME_PAK_DirEntry& o)
+QuME_PAK_DirEntry& QuME_PAK_DirEntry::operator=(QuME_PAK_DirEntry& o)
 {
 	this->fileName = o.fileName;
 	this->fileOffset = o.fileOffset;
@@ -38,7 +38,7 @@ QuME_PAK_DirEntry& QuME_PAK_DirEntry::operator=(const QuME_PAK_DirEntry& o)
 	return *this;
 }
 
-bool QuME_PAK_DirEntry::operator==(const QuME_PAK_DirEntry& o)
+bool QuME_PAK_DirEntry::operator==(QuME_PAK_DirEntry& o)
 {
 	return (this->fileName == o.fileName);
 }
@@ -47,18 +47,14 @@ QuME_PAK_File::QuME_PAK_File()
 {
 	this->dirLength = 0;
 	this->dirOffset = 0;
-	this->dirEntryArray = nullptr;
-	this->dirEntryArrayCount = 0;
 	this->pakID = ('P' | ('A' << 8) | ('C' << 16) | ('K' << 24)); //magic number
 }
 
-QuME_PAK_File::QuME_PAK_File(const QuME_PAK_File& o)
+QuME_PAK_File::QuME_PAK_File(QuME_PAK_File& o)
 {
 	this->dirLength = o.dirLength;
 	this->dirOffset = o.dirOffset;
-	this->dirEntryArray = nullptr;
-	this->dirEntryArrayCount = 0;
-	this->dirEntries.Append(o.dirEntries); //make deep copy
+	this->dirEntryList.Append(o.dirEntryList); //make deep copy
 	this->pakFileName = o.pakFileName;
 	this->pakID = o.pakID;
 }
@@ -67,17 +63,11 @@ QuME_PAK_File::QuME_PAK_File(std::wstring fname)
 {
 	this->pakFileName = fname;
 	this->pakID = ('P' | ('A' << 8) | ('C' << 16) | ('K' << 24)); //magic number
-	this->dirEntryArray = nullptr;
-	this->dirEntryArrayCount = 0;
 	this->LoadPAKFileInfo();
 }
 
 QuME_PAK_File::~QuME_PAK_File()
 {
-	this->dirLength = 0;
-	this->dirOffset = 0;
-	SAFE_ARRAY_DELETE(this->dirEntryArray);
-	this->dirEntryArrayCount = 0;
 }
 
 void QuME_PAK_File::LoadPAKFileInfo()
@@ -146,21 +136,21 @@ void QuME_PAK_File::LoadPAKFileInfo()
 		dEntry.fileName = fname;
 		dEntry.fileOffset = foff;
 		dEntry.fileSize = flen;
-		this->dirEntries.Append(dEntry);
+		this->dirEntryList.Append(dEntry);
 	}
 
-	this->dirEntryArrayCount = this->dirEntries.ToArray(this->dirEntryArray);
+	this->dirEntryList.ToArray(this->dirEntries);
 }
 
 QuME_PAK_DirEntry* QuME_PAK_File::GetFileInfo(std::wstring fName)
 {
 	try
 	{
-		if(this->dirEntryArrayCount == 0)
+		if(this->dirEntries.Count == 0)
 		{
 			this->LoadPAKFileInfo();
 		}
-		if(this->dirEntryArrayCount == 0) //bad pak file, abort!
+		if(this->dirEntries.Count == 0) //bad pak file, abort!
 		{
 			return nullptr;
 		}
@@ -174,10 +164,10 @@ QuME_PAK_DirEntry* QuME_PAK_File::GetFileInfo(std::wstring fName)
 	}
 
 	wxUint32 fileIndex = 0;
-	while(fileIndex < this->dirEntryArrayCount)
+	while(fileIndex < this->dirEntries.Count)
 	{
-		if(fName == this->dirEntryArray[fileIndex].fileName)
-			return &this->dirEntryArray[fileIndex];
+		if(fName == this->dirEntries[fileIndex].fileName)
+			return &this->dirEntries[fileIndex];
 	}
 	return nullptr;
 }
@@ -215,7 +205,7 @@ size_t QuME_PAK_File::LoadFile(std::wstring fName, wxUint8** buffer)
 	}
 }
 
-bool QuME_PAK_File::operator==(const QuME_PAK_File& o)
+bool QuME_PAK_File::operator==(QuME_PAK_File& o)
 {
 	return (this->pakFileName == o.pakFileName);
 }

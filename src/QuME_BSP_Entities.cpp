@@ -138,9 +138,8 @@ QuME_Entity::QuME_Entity()
 	this->KeyCount = 0;
 }
 
-QuME_Entity::QuME_Entity(const QuME_Entity& o)
+QuME_Entity::QuME_Entity(QuME_Entity& o)
 {
-//    SAFE_ARRAY_DELETE(this->KeyArray);
     this->KeyArray = nullptr;
     this->KeyCount = 0;
     this->Keys.Append(o.Keys);
@@ -154,7 +153,7 @@ QuME_Entity::~QuME_Entity()
 	KeyArray = nullptr;
 }
 
-QuME_Entity& QuME_Entity::operator=(const QuME_Entity& o)
+QuME_Entity& QuME_Entity::operator=(QuME_Entity& o)
 {
 	SAFE_ARRAY_DELETE(this->KeyArray);
 	this->KeyArray = nullptr;
@@ -202,21 +201,20 @@ bool QuME_Entity::ParseEntity(wxUint8* buffer, wxUint32& currentIndex, wxUint32 
     if(success)
 	{
 		this->KeyCount = this->Keys.ToArray(this->KeyArray);
-		//this->EntityList.Append(CurrentEntity);
 	}
     return success;
 }
 
 QuME_BSP_Entities::QuME_BSP_Entities()
 {
-    this->EntityCount = 0;
-    this->EntityArray = nullptr;
+    //this->EntityCount = 0;
+    //this->EntityArray = nullptr;
 }
 
 QuME_BSP_Entities::~QuME_BSP_Entities()
 {
-    SAFE_ARRAY_DELETE(this->EntityArray);
-    this->EntityArray = nullptr;
+    //SAFE_ARRAY_DELETE(this->EntityArray);
+    //this->EntityArray = nullptr;
 }
 
 enum ENT_PARSE_STATE
@@ -257,7 +255,6 @@ bool QuME_BSP_Entities::ParseEntities(wxUint8* buffer, wxUint32 length)
 
         case NEW_ENT:
         	success = CurrentEntity->ParseEntity(buffer, currentIndex, length);
-            //charsEaten = ParseEntity(&buffer[i], length - i, CurrentEntity);
             if(!success) //error case
             {
                 done = true;
@@ -274,7 +271,8 @@ bool QuME_BSP_Entities::ParseEntities(wxUint8* buffer, wxUint32 length)
     }
     if(success)
 	{
-		this->EntityCount = this->EntityList.ToArray(this->EntityArray);
+        this->EntityList.ToArray(this->Entities);
+		//this->EntityCount = this->EntityList.ToArray(this->EntityArray);
 	}
 	SAFE_DELETE(CurrentEntity);
 	CurrentEntity = nullptr;
@@ -326,11 +324,12 @@ void QuME_Entity::DebugDump(wxTextOutputStream& out)
 
 void QuME_BSP_Entities::DebugDump(wxTextOutputStream& out)
 {
-    out << L"Entities: " << this->EntityCount << L"\n";
-    for(wxUint32 i = 0; i < this->EntityCount; i++)
+    out << L"Entities: " << std::to_wstring(this->Entities.Count) << L"\n";
+    for(wxUint32 i = 0; i < this->Entities.Count; i++)
     {
         out << L"Entity #" << i << L"\n";
-        this->EntityArray[i].DebugDump(out);
+        //this->EntityArray[i].DebugDump(out);
+        this->Entities[i].DebugDump(out);
     }
     out << L"\n------------------------------------------------\n";
 }

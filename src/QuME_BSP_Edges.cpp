@@ -10,20 +10,14 @@
 
 QuME_BSP_Edges::QuME_BSP_Edges()
 {
-    this->Count = 0;
-    this->EdgeArray = nullptr;
 }
 
 QuME_BSP_Edges::~QuME_BSP_Edges()
 {
-    this->Count = 0;
-    if(this->EdgeArray != nullptr) SAFE_ARRAY_DELETE(this->EdgeArray);
 }
 
 bool QuME_BSP_Edges::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint32 length)
 {
-    this->Count = length / Q2_BSP_EDGE_DATA_SIZE;
-
     wxDataInputStream* binData = new wxDataInputStream( *infile );
 
     if(!binData->IsOk())
@@ -38,17 +32,14 @@ bool QuME_BSP_Edges::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint
         return false;
     }
 
-    this->EdgeArray = new QuME_BSP_Edge[this->Count];
-    if(this->EdgeArray == nullptr)
-    {
-        delete binData;
-        return false;
-    }
+    this->Edges.Allocate(length / Q2_BSP_EDGE_DATA_SIZE);
 
-    for(wxUint32 i = 0; i < this->Count; i++)
+    for(wxUint32 i = 0; i < this->Edges.Count; i++)
     {
-        this->EdgeArray[i].a = binData->Read16();
-        this->EdgeArray[i].b = binData->Read16();
+    	wxInt16 ta = binData->Read16();
+    	wxInt16 tb = binData->Read16();
+        this->Edges[i].a = ta;
+        this->Edges[i].b = tb;
     }
 
     if(!binData->IsOk())
@@ -63,10 +54,10 @@ bool QuME_BSP_Edges::LoadLump(wxFileInputStream* infile, wxUint32 offset, wxUint
 
 void QuME_BSP_Edges::DebugDump(wxTextOutputStream& out)
 {
-    out << L"Edges:\nCount: " << this->Count << L"\n";
-    for(wxUint32 i = 0; i < this->Count; i++)
+    out << L"Edges:\nCount: " << std::to_wstring(this->Edges.Count) << L"\n";
+    for(wxUint32 i = 0; i < this->Edges.Count; i++)
     {
-        out << L"a: " << this->EdgeArray[i].a << L", b: " << this->EdgeArray[i].b << L"\n";
+        out << L"a: " << this->Edges[i].a << L", b: " << this->Edges[i].b << L"\n";
     }
     out << L"\n----------------------------------\n";
 }

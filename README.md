@@ -6,5 +6,5 @@ and WxWidgets on Linux. It is extremely alpha at this stage. It works, but it st
 
 Version 0.2.5 note: The code works much better now. Lots of things have been fixed. Still needs the map data and textures to be extracted from the pak files.
 
-Dependencies: Code::Blocks v16.01, WxWidgets 3.0, and OpenGL.
+Dependencies: Code::Blocks v16.01 and WxWidgets 3.0.
 Compiles and runs fine on my system, Xubuntu 16.04, no guarantees on other systems/OS's
